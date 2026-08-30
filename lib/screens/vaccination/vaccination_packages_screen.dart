@@ -4,8 +4,9 @@ import '../../database/db_helper.dart';
 import '../../utils/date_helper.dart';
 import 'create_vaccination_package_screen.dart';
 
-/// شاشة باقات التطعيمات: تعرض كل باقة (مرتبطة بأليفة محددة) مع اسم العميل
-/// واسم الأليفة، وقائمة تطعيماتها أفقياً مع حالة كل تطعيمة (أُعطيت أم لا)
+/// Vaccination packages screen: shows every package (linked to a specific
+/// pet) with the client name and pet name, and its vaccine list shown
+/// horizontally with each vaccine's status (given or not)
 class VaccinationPackagesScreen extends StatefulWidget {
   const VaccinationPackagesScreen({super.key});
 
@@ -50,11 +51,11 @@ class _VaccinationPackagesScreenState extends State<VaccinationPackagesScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('حذف الباقة'),
-        content: const Text('هل تريد حذف باقة التطعيمات هذه بكل تطعيماتها؟'),
+        title: const Text('Delete Package'),
+        content: const Text('Do you want to delete this vaccination package along with all its vaccines?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('حذف', style: TextStyle(color: Colors.red))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete', style: TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -67,7 +68,7 @@ class _VaccinationPackagesScreenState extends State<VaccinationPackagesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('باقات التطعيمات')),
+      appBar: AppBar(title: const Text('Vaccination Packages')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           final created = await Navigator.push(
@@ -77,7 +78,7 @@ class _VaccinationPackagesScreenState extends State<VaccinationPackagesScreen> {
           if (created == true) setState(_reload);
         },
         icon: const Icon(Icons.add),
-        label: const Text('باقة جديدة'),
+        label: const Text('New Package'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -87,7 +88,7 @@ class _VaccinationPackagesScreenState extends State<VaccinationPackagesScreen> {
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           final packages = snapshot.data!;
           if (packages.isEmpty) {
-            return const Center(child: Text('لا يوجد باقات تطعيمات بعد — اضغط "باقة جديدة" لإضافة أول باقة'));
+            return const Center(child: Text('No vaccination packages yet — tap "New Package" to add the first one'));
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -109,7 +110,7 @@ class _VaccinationPackagesScreenState extends State<VaccinationPackagesScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(pkg['pet_name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                Text('العميل: ${pkg['client_name']} — ${pkg['client_phone']}',
+                                Text('Client: ${pkg['client_name']} — ${pkg['client_phone']}',
                                     style: const TextStyle(color: AppColors.textLight, fontSize: 13)),
                               ],
                             ),
@@ -131,7 +132,7 @@ class _VaccinationPackagesScreenState extends State<VaccinationPackagesScreen> {
                             );
                           }
                           final items = itemSnap.data!;
-                          if (items.isEmpty) return const Text('لا يوجد تطعيمات في هذه الباقة');
+                          if (items.isEmpty) return const Text('No vaccines in this package');
                           return SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Row(

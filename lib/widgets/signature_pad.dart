@@ -3,8 +3,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-/// عنصر التوقيع الإلكتروني بالإصبع - يُستخدم داخل الاستمارات.
-/// يوفر GlobalKey لتصدير التوقيع كصورة PNG عند الحفظ.
+/// A finger-drawn electronic signature widget - used inside forms.
+/// Provides a GlobalKey to export the signature as a PNG image on save.
 class SignaturePad extends StatefulWidget {
   final GlobalKey repaintKey;
   final VoidCallback? onChanged;
@@ -47,7 +47,7 @@ class SignaturePadState extends State<SignaturePad> {
     widget.onChanged?.call();
   }
 
-  /// يصدّر التوقيع الحالي كصورة PNG (bytes) - يُستخدم عند اعتماد الاستمارة
+  /// Exports the current signature as a PNG image (bytes) - used when submitting the form
   Future<Uint8List?> exportPng() async {
     if (isEmpty) return null;
     final boundary = widget.repaintKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;

@@ -6,8 +6,8 @@ import '../../core/app_colors.dart';
 import '../../database/db_helper.dart';
 import '../../utils/image_picker_helper.dart';
 
-/// عرض استمارة مُعتمدة سابقاً: معاينة/طباعة/مشاركة ملف PDF، وعرض وإضافة
-/// المرفقات (مثل صور الفواتير) المرتبطة بها.
+/// View a previously submitted form: preview/print/share the PDF file, and view
+/// and add attachments (such as invoice photos) linked to it.
 class FormSubmissionViewScreen extends StatefulWidget {
   final Map<String, dynamic> submission;
 
@@ -38,12 +38,12 @@ class _FormSubmissionViewScreenState extends State<FormSubmissionViewScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('التقاط صورة بالكاميرا'),
+              title: const Text('Take Photo with Camera'),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('اختيار من المعرض'),
+              title: const Text('Choose from Gallery'),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
           ],
@@ -76,9 +76,9 @@ class _FormSubmissionViewScreenState extends State<FormSubmissionViewScreen> {
                 children: [
                   Text(s['template_name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 6),
-                  Text('تاريخ الاعتماد: ${s['submitted_at']}'),
-                  if (s['staff_name'] != null) Text('الموظف: ${s['staff_name']}'),
-                  if (s['civil_id'] != null) Text('رقم الهوية/الإقامة: ${s['civil_id']}'),
+                  Text('Submission Date: ${s['submitted_at']}'),
+                  if (s['staff_name'] != null) Text('Staff: ${s['staff_name']}'),
+                  if (s['civil_id'] != null) Text('ID/Residency Number: ${s['civil_id']}'),
                 ],
               ),
             ),
@@ -89,23 +89,23 @@ class _FormSubmissionViewScreenState extends State<FormSubmissionViewScreen> {
               height: 52,
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.picture_as_pdf),
-                label: const Text('معاينة / طباعة / مشاركة PDF'),
+                label: const Text('Preview / Print / Share PDF'),
                 onPressed: () => Printing.layoutPdf(
                   onLayout: (format) async => File(pdfPath).readAsBytesSync(),
                 ),
               ),
             )
           else
-            const Text('تعذّر العثور على ملف PDF لهذه الاستمارة', style: TextStyle(color: AppColors.danger)),
+            const Text('Could not find the PDF file for this form', style: TextStyle(color: AppColors.danger)),
           const Divider(height: 32),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('المرفقات', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const Text('Attachments', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               TextButton.icon(
                 onPressed: _addAttachment,
                 icon: const Icon(Icons.add),
-                label: const Text('إرفاق مستند'),
+                label: const Text('Attach Document'),
               ),
             ],
           ),
@@ -114,7 +114,7 @@ class _FormSubmissionViewScreenState extends State<FormSubmissionViewScreen> {
             builder: (context, snapshot) {
               if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
               final attachments = snapshot.data!;
-              if (attachments.isEmpty) return const Text('لا يوجد مرفقات');
+              if (attachments.isEmpty) return const Text('No attachments');
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),

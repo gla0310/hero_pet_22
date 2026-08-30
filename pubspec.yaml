@@ -1,5 +1,5 @@
 name: hero_pet
-description: "hero pet - نظام إدارة داخلي لعيادة بيطرية (Offline)"
+description: "hero pet - internal front-desk management system for a veterinary clinic (Offline)"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -15,32 +15,32 @@ dependencies:
   cupertino_icons: ^1.0.9
 
 
-  # قاعدة البيانات المحلية
+  # Local database
   sqflite: ^2.3.3+1
   path: ^1.9.0
   path_provider: ^2.1.3
 
-  # التاريخ والوقت
+  # Date and time
   intl: ^0.20.2
 
-  # التقاط الصور من الكاميرا / المعرض
+  # Capture photos from camera / gallery
   image_picker: ^1.1.2
 
-  # فتح واتساب
+  # Open WhatsApp
   url_launcher: ^6.3.0
 
-  # اختيار ملفات للنسخ الاحتياطي / الاستعادة
+  # Pick files for backup / restore
   file_picker: ^10.3.0
 
-  # أيقونة توليد id فريد
+  # Generate unique id
   uuid: ^4.4.0
 
-  # مشاركة الملفات (نسخة احتياطية)
+  # Share files (backup)
   share_plus: ^12.0.0
 
-  # إنشاء ملفات PDF للاستمارات الإلكترونية
+  # Generate PDF files for electronic forms
   pdf: ^3.10.7
-  # معاينة وطباعة/مشاركة ملفات الـ PDF
+  # Preview and print/share PDF files
   printing: ^5.13.1
 
 dev_dependencies:
@@ -50,15 +50,15 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  # عند إضافة أيقونة أو شعار العيادة ضعه هنا:
+  # When adding a clinic icon or logo, put it here:
   # assets:
   #   - assets/images/logo.png
 
   assets:
     - assets/fonts/
 
-  # خط عربي مضمّن داخل التطبيق (يعمل بدون إنترنت من أول استخدام) - يُستخدم
-  # في إنشاء ملفات PDF للاستمارات الإلكترونية حتى تظهر الحروف العربية بشكل صحيح
+  # Embedded font (works offline from first use) - used when generating
+  # PDF files for electronic forms
   fonts:
     - family: NotoSansArabic
       fonts:

@@ -3,8 +3,8 @@ import '../../core/app_colors.dart';
 import '../../core/constants.dart';
 import '../../database/db_helper.dart';
 
-/// إنشاء أو تعديل قالب استمارة: الاسم، نوع الخدمة، نص الشروط، تفعيل/إيقاف،
-/// وإدارة الحقول الإضافية (نص / نص طويل / مربع اختيار) داخل القالب.
+/// Create or edit a form template: name, service type, terms text, active/inactive,
+/// and manage the extra fields (text / long text / checkbox) within the template.
 class EditFormTemplateScreen extends StatefulWidget {
   final int? templateId;
 
@@ -58,37 +58,37 @@ class _EditFormTemplateScreenState extends State<EditFormTemplateScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('إضافة حقل للاستمارة'),
+          title: const Text('Add Field to Form'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: labelController,
                 autofocus: true,
-                decoration: const InputDecoration(labelText: 'نص الحقل / السؤال'),
+                decoration: const InputDecoration(labelText: 'Field Text / Question'),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: fieldType,
-                decoration: const InputDecoration(labelText: 'نوع الحقل'),
+                decoration: const InputDecoration(labelText: 'Field Type'),
                 items: const [
-                  DropdownMenuItem(value: 'text', child: Text('حقل نصي قصير')),
-                  DropdownMenuItem(value: 'textarea', child: Text('حقل نصي طويل')),
-                  DropdownMenuItem(value: 'checkbox', child: Text('مربع اختيار (Checkbox)')),
+                  DropdownMenuItem(value: 'text', child: Text('Short Text Field')),
+                  DropdownMenuItem(value: 'textarea', child: Text('Long Text Field')),
+                  DropdownMenuItem(value: 'checkbox', child: Text('Checkbox')),
                 ],
                 onChanged: (v) => setDialogState(() => fieldType = v ?? fieldType),
               ),
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('حقل إلزامي'),
+                title: const Text('Required Field'),
                 value: required,
                 onChanged: (v) => setDialogState(() => required = v ?? false),
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-            ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('إضافة')),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+            ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Add')),
           ],
         ),
       ),
@@ -107,7 +107,7 @@ class _EditFormTemplateScreenState extends State<EditFormTemplateScreen> {
       if (!mounted) return;
       setState(() => _fields = fields);
     } else {
-      // القالب لم يُحفظ بعد - نحتفظ بالحقل محلياً حتى الحفظ الأول
+      // Template not saved yet - keep the field locally until the first save
       setState(() {
         _fields.add({
           'id': null,
@@ -129,7 +129,7 @@ class _EditFormTemplateScreenState extends State<EditFormTemplateScreen> {
   Future<void> _save() async {
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء كتابة اسم الاستمارة')),
+        const SnackBar(content: Text('Please enter a form name')),
       );
       return;
     }
@@ -150,7 +150,7 @@ class _EditFormTemplateScreenState extends State<EditFormTemplateScreen> {
         termsText: _termsController.text.trim().isEmpty ? null : _termsController.text.trim(),
         active: _active,
       );
-      // نحفظ الحقول التي أُضيفت محلياً قبل حفظ القالب لأول مرة
+      // Save the fields that were added locally before the template's first save
       for (final field in _fields) {
         await DBHelper.instance.addFormField(
           templateId: newId,
@@ -163,14 +163,14 @@ class _EditFormTemplateScreenState extends State<EditFormTemplateScreen> {
 
     if (!mounted) return;
     setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ الاستمارة')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Form saved')));
     Navigator.pop(context, true);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.isEditing ? 'تعديل الاستمارة' : 'استمارة جديدة')),
+      appBar: AppBar(title: Text(widget.isEditing ? 'Edit Form' : 'New Form')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
@@ -180,16 +180,16 @@ class _EditFormTemplateScreenState extends State<EditFormTemplateScreen> {
                   TextField(
                     controller: _nameController,
                     decoration: const InputDecoration(
-                      labelText: 'اسم الاستمارة',
+                      labelText: 'Form Name',
                       prefixIcon: Icon(Icons.title),
-                      hintText: 'مثال: استمارة دخول فندقة عادية',
+                      hintText: 'Example: Standard Boarding Check-in Form',
                     ),
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     value: _serviceType,
                     decoration: const InputDecoration(
-                      labelText: 'تظهر تلقائياً عند',
+                      labelText: 'Automatically Appears For',
                       prefixIcon: Icon(Icons.category),
                     ),
                     items: FormServiceType.all
@@ -200,8 +200,8 @@ class _EditFormTemplateScreenState extends State<EditFormTemplateScreen> {
                   const SizedBox(height: 16),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('الاستمارة مفعّلة'),
-                    subtitle: const Text('عند الإيقاف، لن تظهر هذه الاستمارة تلقائياً للعميل'),
+                    title: const Text('Form Active'),
+                    subtitle: const Text('When disabled, this form will not automatically appear for the client'),
                     value: _active,
                     onChanged: (v) => setState(() => _active = v),
                   ),
@@ -209,7 +209,7 @@ class _EditFormTemplateScreenState extends State<EditFormTemplateScreen> {
                   TextField(
                     controller: _termsController,
                     decoration: const InputDecoration(
-                      labelText: 'نص الشروط والأحكام',
+                      labelText: 'Terms and Conditions Text',
                       prefixIcon: Icon(Icons.gavel),
                       alignLabelWithHint: true,
                     ),
@@ -219,26 +219,26 @@ class _EditFormTemplateScreenState extends State<EditFormTemplateScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('حقول إضافية', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      const Text('Additional Fields', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       TextButton.icon(
                         onPressed: _addField,
                         icon: const Icon(Icons.add),
-                        label: const Text('إضافة حقل'),
+                        label: const Text('Add Field'),
                       ),
                     ],
                   ),
-                  if (_fields.isEmpty) const Text('لا يوجد حقول إضافية بعد'),
+                  if (_fields.isEmpty) const Text('No additional fields yet'),
                   ..._fields.asMap().entries.map((entry) {
                     final i = entry.key;
                     final f = entry.value;
                     final required = (f['required'] as int) == 1;
                     final typeLabel = f['field_type'] == 'checkbox'
-                        ? 'مربع اختيار'
-                        : (f['field_type'] == 'textarea' ? 'نص طويل' : 'نص قصير');
+                        ? 'Checkbox'
+                        : (f['field_type'] == 'textarea' ? 'Long Text' : 'Short Text');
                     return Card(
                       child: ListTile(
                         title: Text(f['label']),
-                        subtitle: Text('$typeLabel${required ? ' — إلزامي' : ''}'),
+                        subtitle: Text('$typeLabel${required ? ' — Required' : ''}'),
                         trailing: IconButton(
                           icon: const Icon(Icons.delete_outline, color: AppColors.danger),
                           onPressed: () => _deleteField(f, i),
@@ -251,7 +251,7 @@ class _EditFormTemplateScreenState extends State<EditFormTemplateScreen> {
                     icon: _saving
                         ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                         : const Icon(Icons.save),
-                    label: Text(_saving ? 'جاري الحفظ...' : 'حفظ الاستمارة'),
+                    label: Text(_saving ? 'Saving...' : 'Save Form'),
                     onPressed: _saving ? null : _save,
                   ),
                 ],

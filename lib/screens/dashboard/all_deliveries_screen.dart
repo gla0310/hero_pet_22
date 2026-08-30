@@ -14,13 +14,13 @@ class AllDeliveriesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('جميع خروجات الفندقة')),
+      appBar: AppBar(title: const Text('All Hotel Check-outs')),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: DBHelper.instance.getRecentDeliveries(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           final items = snapshot.data!;
-          if (items.isEmpty) return const Center(child: Text('لا يوجد خروجات بعد'));
+          if (items.isEmpty) return const Center(child: Text('No check-outs yet'));
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: items.length,
@@ -31,7 +31,7 @@ class AllDeliveriesScreen extends StatelessWidget {
                   leading: const Icon(Icons.check_circle, color: AppColors.textLight, size: 30),
                   title: Text(item['pet_name']),
                   subtitle: Text(
-                    '${item['client_name']} — ${_kindLabel(item)}\nخروج: ${item['actual_exit_date'] ?? '-'} — الحالة: ${item['status']}',
+                    '${item['client_name']} — ${_kindLabel(item)}\nCheck-out: ${item['actual_exit_date'] ?? '-'} — Status: ${item['status']}',
                   ),
                   isThreeLine: true,
                 ),

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import '../core/app_colors.dart';
 
-/// زر كبير بأيقونة مناسب لشاشة التابلت - يُستخدم في الشاشة الرئيسية
+/// A large icon button suited to a tablet screen - used on the home screen
 class BigIconButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
   final Color? color;
 
-  /// عند تمريرها، تظهر أيقونة "+" صغيرة في زاوية البطاقة لفتح إجراء سريع
-  /// (مثال: الانتقال مباشرة لإضافة موعد دون المرور بالقائمة أولاً)
+  /// When provided, a small "+" icon appears in the card's corner to open a quick action
+  /// (example: going directly to add an appointment without going through the menu first)
   final VoidCallback? onQuickAdd;
   final String? quickAddTooltip;
 
@@ -75,7 +75,7 @@ class BigIconButton extends StatelessWidget {
                   customBorder: const CircleBorder(),
                   onTap: onQuickAdd,
                   child: Tooltip(
-                    message: quickAddTooltip ?? 'إضافة سريعة',
+                    message: quickAddTooltip ?? 'Quick add',
                     child: const Padding(
                       padding: EdgeInsets.all(6),
                       child: Icon(Icons.add, size: 18, color: Colors.white),

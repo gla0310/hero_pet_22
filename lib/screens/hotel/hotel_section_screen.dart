@@ -4,22 +4,22 @@ import 'checkin_search_screen.dart';
 import 'current_guests_screen.dart';
 import 'checkout_search_screen.dart';
 
-/// نقطة الدخول لقسم الفندقة بأكمله: تسجيل دخول / المتواجدون حالياً / تسجيل خروج
+/// Entry point for the entire hotel section: check-in / currently present / checkout
 class HotelSectionScreen extends StatelessWidget {
   const HotelSectionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('الفندقة')),
+      appBar: AppBar(title: const Text('Hotel')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
             _HotelCard(
               icon: Icons.login,
-              title: 'تسجيل دخول',
-              subtitle: 'فندقة عادية / علاجية أو إجراء طبي',
+              title: 'Check-in',
+              subtitle: 'Regular / treatment boarding or medical procedure',
               color: AppColors.primary,
               onTap: () => Navigator.push(
                 context,
@@ -29,8 +29,8 @@ class HotelSectionScreen extends StatelessWidget {
             const SizedBox(height: 20),
             _HotelCard(
               icon: Icons.meeting_room,
-              title: 'المتواجدون حالياً',
-              subtitle: 'عرض وإدارة ملاحظات كل أليفة موجودة',
+              title: 'Currently Present',
+              subtitle: 'View and manage notes for every pet present',
               color: AppColors.statusInHotel,
               onTap: () => Navigator.push(
                 context,
@@ -40,8 +40,8 @@ class HotelSectionScreen extends StatelessWidget {
             const SizedBox(height: 20),
             _HotelCard(
               icon: Icons.logout,
-              title: 'تسجيل خروج',
-              subtitle: 'إنهاء الفندقة أو تسليم بعد إجراء طبي',
+              title: 'Checkout',
+              subtitle: 'End a boarding stay or deliver after a medical procedure',
               color: AppColors.warning,
               onTap: () => Navigator.push(
                 context,

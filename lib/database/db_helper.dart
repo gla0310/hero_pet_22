@@ -13,8 +13,8 @@ import '../models/admission.dart';
 import '../models/admission_note.dart';
 import '../models/grooming_service.dart';
 
-/// كلاس مركزي لإدارة قاعدة البيانات المحلية (SQLite) الخاصة بتطبيق Hero Pet
-/// كل العمليات (CRUD) لجميع الجداول تمر من هنا حتى يسهل التطوير والصيانة.
+/// A central class for managing Hero Pet's local (SQLite) database
+/// All CRUD operations for every table go through here for easier development and maintenance.
 class DBHelper {
   DBHelper._internal();
   static final DBHelper instance = DBHelper._internal();
@@ -45,8 +45,8 @@ class DBHelper {
     );
   }
 
-  /// عند ترقية قاعدة بيانات موجودة مسبقاً (نسخة قديمة من التطبيق مثبتة على الجهاز)
-  /// نضيف فقط الجداول/الأعمدة الجديدة دون المساس بأي بيانات موجودة.
+  /// When upgrading an existing database (an older app version installed on the device)
+  /// we only add new tables/columns without touching any existing data.
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       await db.execute('''
@@ -60,7 +60,7 @@ class DBHelper {
       ''');
     }
     if (oldVersion < 3) {
-      // نضيف عمود تاريخ إضافة العميل للعملاء المسجلين مسبقاً (يبقى فارغاً لهم)
+      // Add the client-added date column for previously registered clients (stays empty for them)
       final columns = await db.rawQuery('PRAGMA table_info(Clients)');
       final hasCreatedAt = columns.any((c) => c['name'] == 'created_at');
       if (!hasCreatedAt) {
@@ -68,7 +68,7 @@ class DBHelper {
       }
     }
     if (oldVersion < 4) {
-      // نضيف عمود "الرصيد" لكل عميل (افتراضياً صفر لكل العملاء المسجلين مسبقاً)
+      // Add a "balance" column for each client (defaults to zero for all previously registered clients)
       final columns = await db.rawQuery('PRAGMA table_info(Clients)');
       final hasBalance = columns.any((c) => c['name'] == 'balance');
       if (!hasBalance) {
@@ -76,7 +76,7 @@ class DBHelper {
       }
     }
     if (oldVersion < 5) {
-      // السجل المدني (اختياري) + الأرشفة للعملاء
+      // Civil ID (optional) + archiving for clients
       final clientColumns = await db.rawQuery('PRAGMA table_info(Clients)');
       if (!clientColumns.any((c) => c['name'] == 'civil_id')) {
         await db.execute('ALTER TABLE Clients ADD COLUMN civil_id TEXT');
@@ -85,7 +85,7 @@ class DBHelper {
         await db.execute('ALTER TABLE Clients ADD COLUMN archived INTEGER NOT NULL DEFAULT 0');
       }
 
-      // المايكروشيب + الأرشفة للأليفات
+      // Microchip + archiving for pets
       final petColumns = await db.rawQuery('PRAGMA table_info(Pets)');
       if (!petColumns.any((c) => c['name'] == 'microchip')) {
         await db.execute('ALTER TABLE Pets ADD COLUMN microchip TEXT');
@@ -94,13 +94,13 @@ class DBHelper {
         await db.execute('ALTER TABLE Pets ADD COLUMN archived INTEGER NOT NULL DEFAULT 0');
       }
 
-      // حالة الموعد
+      // Appointment status
       final apptColumns = await db.rawQuery('PRAGMA table_info(Appointments)');
       if (!apptColumns.any((c) => c['name'] == 'status')) {
-        await db.execute("ALTER TABLE Appointments ADD COLUMN status TEXT NOT NULL DEFAULT 'بانتظار'");
+        await db.execute("ALTER TABLE Appointments ADD COLUMN status TEXT NOT NULL DEFAULT 'Pending'");
       }
 
-      // جداول باقات التطعيمات
+      // Vaccination package tables
       await db.execute('''
         CREATE TABLE IF NOT EXISTS VaccinationPackages (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -118,7 +118,7 @@ class DBHelper {
       ''');
     }
     if (oldVersion < 6) {
-      // حقول تفصيلية لزيارة العيادة (الفحص/الملاحظات كانت موجودة مسبقاً كـ description)
+      // Detailed clinic visit fields (examination/notes previously existed as description)
       final visitColumns = await db.rawQuery('PRAGMA table_info(Visits)');
       if (!visitColumns.any((c) => c['name'] == 'diagnosis')) {
         await db.execute('ALTER TABLE Visits ADD COLUMN diagnosis TEXT');
@@ -133,13 +133,13 @@ class DBHelper {
         await db.execute('ALTER TABLE Visits ADD COLUMN appointment_id INTEGER');
       }
 
-      // ربط باقة التطعيمات بأليفة محددة (بدل كونها باقة عامة قابلة لإعادة الاستخدام)
+      // Link a vaccination package to a specific pet (instead of being a generic reusable package)
       final packageColumns = await db.rawQuery('PRAGMA table_info(VaccinationPackages)');
       if (!packageColumns.any((c) => c['name'] == 'pet_id')) {
         await db.execute('ALTER TABLE VaccinationPackages ADD COLUMN pet_id INTEGER');
       }
 
-      // حالة كل تطعيمة داخل الباقة: هل أُعطيت أم لا، ومتى، وفي أي زيارة
+      // Status of each vaccine within the package: whether it was given, when, and in which visit
       final itemColumns = await db.rawQuery('PRAGMA table_info(VaccinationPackageItems)');
       if (!itemColumns.any((c) => c['name'] == 'given')) {
         await db.execute('ALTER TABLE VaccinationPackageItems ADD COLUMN given INTEGER NOT NULL DEFAULT 0');
@@ -151,8 +151,8 @@ class DBHelper {
         await db.execute('ALTER TABLE VaccinationPackageItems ADD COLUMN given_visit_id INTEGER');
       }
 
-      // قائمة رئيسية بأسماء التطعيمات المتاحة للاختيار منها عند إنشاء باقة
-      // (تبدأ فارغة تماماً - الموظف يضيف تطعيماته الخاصة بنفسه)
+      // A master list of vaccine names available for selection when creating a package
+      // (starts completely empty - staff add their own vaccines themselves)
       await db.execute('''
         CREATE TABLE IF NOT EXISTS MasterVaccines (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -161,19 +161,19 @@ class DBHelper {
       ''');
     }
     if (oldVersion < 7) {
-      // إزالة التطعيمات الافتراضية التي كانت تُضاف تلقائياً في نسخة سابقة من
-      // التطبيق - القائمة الآن تبدأ فارغة والموظف يضيف تطعيماته بنفسه فقط
+      // Remove the default vaccines that used to be added automatically in a previous
+      // app version - the list now starts empty and staff add their own vaccines only
       const oldDefaultVaccines = [
-        'خماسي', 'سداسي', 'داء الكلب', 'التهاب الكبد الفيروسي',
-        'البارفو', 'الكاليسي', 'التهاب الأنف والقصبة', 'اللوكيميا',
+        'DHPP (5-way)', 'DHLPP (6-way)', 'Rabies', 'Viral Hepatitis',
+        'Parvo', 'Calicivirus', 'Rhinotracheitis', 'Leukemia',
       ];
       for (final v in oldDefaultVaccines) {
         await db.delete('MasterVaccines', where: 'name = ?', whereArgs: [v]);
       }
     }
     if (oldVersion < 8) {
-      // نظام الاستمارات الإلكترونية: قوالب قابلة للتخصيص بالكامل من التطبيق
-      // (بدون أي محتوى افتراضي - المسؤول ينشئها بنفسه من "إدارة الاستمارات")
+      // Electronic forms system: templates fully customizable from the app
+      // (with no default content - the admin creates them from "Manage Forms")
       await db.execute('''
         CREATE TABLE IF NOT EXISTS FormTemplates (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -224,8 +224,8 @@ class DBHelper {
       ''');
     }
     if (oldVersion < 9) {
-      // فصل استمارة "الإجراء الطبي" إلى استمارتين منفصلتين: دخول وخروج
-      // (سابقاً كانت استمارة واحدة مشتركة تُستخدم فقط عند الدخول)
+      // Split the "medical procedure" form into two separate forms: check-in and check-out
+      // (previously it was one shared form used only at check-in)
       await db.update(
         'FormTemplates',
         {'service_type': 'checkin_procedure'},
@@ -240,7 +240,7 @@ class DBHelper {
       );
     }
     if (oldVersion < 10) {
-      // قسم الشاور والحلاقة: سجل خدمة مستقل لكل أليفة
+      // Grooming & bathing department: an independent service record for each pet
       await db.execute('''
         CREATE TABLE IF NOT EXISTS GroomingServices (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -248,7 +248,7 @@ class DBHelper {
           services TEXT NOT NULL,
           counts_as_shower INTEGER NOT NULL DEFAULT 0,
           is_free_shower INTEGER NOT NULL DEFAULT 0,
-          status TEXT NOT NULL DEFAULT 'انتظار',
+          status TEXT NOT NULL DEFAULT 'Pending',
           created_at TEXT NOT NULL,
           completed_at TEXT,
           FOREIGN KEY (pet_id) REFERENCES Pets (id) ON DELETE CASCADE
@@ -256,22 +256,22 @@ class DBHelper {
       ''');
     }
     if (oldVersion < 11) {
-      // ملاحظات حرة لكل خدمة شاور/حلاقة (مثل نوع القصة المطلوبة)
+      // Free-text notes for each grooming/bathing service (such as the requested haircut style)
       final columns = await db.rawQuery('PRAGMA table_info(GroomingServices)');
       if (!columns.any((c) => c['name'] == 'notes')) {
         await db.execute('ALTER TABLE GroomingServices ADD COLUMN notes TEXT');
       }
     }
     if (oldVersion < 12) {
-      // عداد الشاور أصبح رقماً مخزَّناً وقابلاً للتعديل اليدوي بدل حسابه
-      // تلقائياً فقط من السجل - حتى يقدر الموظف يضيف شاورات سابقة للأليفة
-      // من قبل تركيب التطبيق (أو يصحّح العداد يدوياً في أي وقت)
+      // The bath counter is now a stored, manually editable number instead of being
+      // calculated automatically from the record alone - so staff can add previous
+      // baths for a pet from before the app was installed (or correct the counter manually at any time)
       final petColumns = await db.rawQuery('PRAGMA table_info(Pets)');
       if (!petColumns.any((c) => c['name'] == 'shower_count')) {
         await db.execute('ALTER TABLE Pets ADD COLUMN shower_count INTEGER NOT NULL DEFAULT 0');
       }
 
-      // تعبئة العداد لكل أليفة من سجلها الحالي حتى لا يفقد أي عميل تقدّمه السابق
+      // Populate the counter for each pet from its current record so no client loses their previous progress
       final pets = await db.query('Pets');
       for (final pet in pets) {
         final petId = pet['id'] as int;
@@ -327,7 +327,7 @@ class DBHelper {
         image_path TEXT,
         microchip TEXT,
         notes TEXT,
-        status TEXT NOT NULL DEFAULT 'طبيعي',
+        status TEXT NOT NULL DEFAULT 'Normal',
         archived INTEGER NOT NULL DEFAULT 0,
         shower_count INTEGER NOT NULL DEFAULT 0,
         FOREIGN KEY (client_id) REFERENCES Clients (id) ON DELETE CASCADE
@@ -357,7 +357,7 @@ class DBHelper {
         time TEXT NOT NULL,
         reason TEXT,
         notes TEXT,
-        status TEXT NOT NULL DEFAULT 'بانتظار',
+        status TEXT NOT NULL DEFAULT 'Pending',
         FOREIGN KEY (pet_id) REFERENCES Pets (id) ON DELETE CASCADE
       )
     ''');
@@ -427,9 +427,9 @@ class DBHelper {
         name TEXT NOT NULL UNIQUE
       )
     ''');
-    // ملاحظة: القائمة تبدأ فارغة عمداً - الموظف يضيف تطعيماته الخاصة بنفسه
+    // Note: the list starts intentionally empty - staff add their own vaccines themselves
 
-    // نظام الاستمارات الإلكترونية (بدون محتوى افتراضي)
+    // Electronic forms system (with no default content)
     await db.execute('''
       CREATE TABLE FormTemplates (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -486,7 +486,7 @@ class DBHelper {
         services TEXT NOT NULL,
         counts_as_shower INTEGER NOT NULL DEFAULT 0,
         is_free_shower INTEGER NOT NULL DEFAULT 0,
-        status TEXT NOT NULL DEFAULT 'انتظار',
+        status TEXT NOT NULL DEFAULT 'Pending',
         created_at TEXT NOT NULL,
         completed_at TEXT,
         notes TEXT,
@@ -494,7 +494,7 @@ class DBHelper {
       )
     ''');
 
-    // فهرسة رقم الجوال لتسريع البحث لأنه المفتاح الأساسي للنظام
+    // Index the phone number to speed up search since it's the system's primary key
     await db.execute('CREATE INDEX idx_clients_phone ON Clients (phone)');
   }
 
@@ -507,7 +507,7 @@ class DBHelper {
     return db.insert('Clients', map);
   }
 
-  /// طابع زمني موحّد بصيغة yyyy-MM-dd HH:mm (بدون الاعتماد على intl هنا لإبقاء طبقة قاعدة البيانات مستقلة)
+  /// A unified timestamp in yyyy-MM-dd HH:mm format (without relying on intl here to keep the database layer independent)
   String _nowStamp() {
     final now = DateTime.now();
     String two(int n) => n.toString().padLeft(2, '0');
@@ -544,9 +544,9 @@ class DBHelper {
     return db.update('Clients', client.toMap(), where: 'id = ?', whereArgs: [client.id]);
   }
 
-  // ==================== الأرشفة (Archive) ====================
+  // ==================== Archive ====================
 
-  /// أرشفة عميل: يختفي من القوائم الرئيسية والبحث لكن بياناته وسجلاته تبقى محفوظة بالكامل
+  /// Archive a client: disappears from the main lists and search, but their data and records remain fully saved
   Future<int> archiveClient(int clientId) async {
     final db = await database;
     return db.update('Clients', {'archived': 1}, where: 'id = ?', whereArgs: [clientId]);
@@ -563,7 +563,7 @@ class DBHelper {
     return res.map((e) => Client.fromMap(e)).toList();
   }
 
-  /// أرشفة أليفة: تختفي من القوائم الرئيسية لكن سجلاتها الطبية تبقى محفوظة بالكامل
+  /// Archive a pet: disappears from the main lists but its medical records remain fully saved
   Future<int> archivePet(int petId) async {
     final db = await database;
     return db.update('Pets', {'archived': 1}, where: 'id = ?', whereArgs: [petId]);
@@ -574,7 +574,7 @@ class DBHelper {
     return db.update('Pets', {'archived': 0}, where: 'id = ?', whereArgs: [petId]);
   }
 
-  /// كل الأليفات المؤرشفة مع اسم العميل التابعة له لعرضها في شاشة الأرشيف
+  /// All archived pets with their client's name, for display in the archive screen
   Future<List<Map<String, dynamic>>> getArchivedPetsWithClient() async {
     final db = await database;
     return db.rawQuery('''
@@ -586,15 +586,15 @@ class DBHelper {
     ''');
   }
 
-  // ==================== الرصيد (Balance) ====================
+  // ==================== Balance ====================
 
-  /// تحديث رصيد عميل معيّن (استبدال القيمة بالكامل)
+  /// Update a specific client's balance (replace the value entirely)
   Future<int> setClientBalance(int clientId, double balance) async {
     final db = await database;
     return db.update('Clients', {'balance': balance}, where: 'id = ?', whereArgs: [clientId]);
   }
 
-  /// كل العملاء الذين لديهم رصيد فعلي (غير صفر) فقط، مرتّبين من الأكبر رصيداً
+  /// Only clients with an actual (non-zero) balance, ordered from the highest balance down
   Future<List<Client>> getClientsWithBalance() async {
     final db = await database;
     final res = await db.query(
@@ -605,9 +605,9 @@ class DBHelper {
     return res.map((e) => Client.fromMap(e)).toList();
   }
 
-  // ==================== لوحة المعلومات (Dashboard) ====================
+  // ==================== Dashboard ====================
 
-  /// آخر العملاء الذين تمت إضافتهم مع عدد الأليفات التابعة لكل عميل
+  /// The most recently added clients with the pet count for each client
   Future<List<Map<String, dynamic>>> getRecentClientsWithPetCount({int? limit}) async {
     final db = await database;
     final limitClause = limit != null ? 'LIMIT $limit' : '';
@@ -620,7 +620,7 @@ class DBHelper {
     ''');
   }
 
-  /// آخر عمليات دخول الفندقة/الإجراء الطبي (أي حالة) مرتبة بتاريخ الدخول
+  /// The most recent hotel/medical procedure check-ins (any status), ordered by entry date
   Future<List<Map<String, dynamic>>> getRecentAdmissionCheckins({int? limit}) async {
     final db = await database;
     final limitClause = limit != null ? 'LIMIT $limit' : '';
@@ -634,7 +634,7 @@ class DBHelper {
     ''');
   }
 
-  /// آخر عمليات التسليم (الحالة "تم التسليم") مرتبة بتاريخ الخروج الفعلي
+  /// The most recent deliveries (status "Delivered"), ordered by actual exit date
   Future<List<Map<String, dynamic>>> getRecentDeliveries({int? limit}) async {
     final db = await database;
     final limitClause = limit != null ? 'LIMIT $limit' : '';
@@ -649,7 +649,7 @@ class DBHelper {
     ''', [PetStatus.delivered]);
   }
 
-  /// الأليفات التي تجاوزت تاريخ الخروج المتوقع وما زالت موجودة فعلياً (متأخرة عن الخروج)
+  /// Pets that have passed their expected exit date and are still actually present (overdue for exit)
   Future<List<Map<String, dynamic>>> getOverdueAdmissionsWithDetails() async {
     final db = await database;
     final today = DateTime.now().toIso8601String().substring(0, 10);
@@ -741,13 +741,13 @@ class DBHelper {
 
   Future<int> deleteAppointment(int id) async {
     final db = await database;
-    // نحذف التذكيرات المرتبطة أولاً (إن وجدت) ثم الموعد نفسه
+    // Delete the related reminders first (if any), then the appointment itself
     await db.delete('Reminders', where: 'appointment_id = ?', whereArgs: [id]);
     return db.delete('Appointments', where: 'id = ?', whereArgs: [id]);
   }
 
-  /// كل المواعيد (من اليوم فصاعداً) مع تفاصيل الأليفة والعميل - تُستخدم في
-  /// شاشة المواعيد وشاشة التذكيرات
+  /// All appointments (from today onward) with pet and client details - used in
+  /// the appointments screen and the reminders screen
   Future<List<Map<String, dynamic>>> getUpcomingAppointmentsWithDetails() async {
     final db = await database;
     final today = DateTime.now().toIso8601String().substring(0, 10);
@@ -761,7 +761,7 @@ class DBHelper {
     ''', [today]);
   }
 
-  /// جميع المواعيد مع بيانات الأليفة والعميل (Join) لعرضها في شاشة المواعيد
+  /// All appointments with pet and client data (Join), for display in the appointments screen
   Future<List<Map<String, dynamic>>> getAllAppointmentsWithDetails({String? forDate}) async {
     final db = await database;
     final where = forDate != null ? "WHERE a.date = '$forDate'" : '';
@@ -782,7 +782,7 @@ class DBHelper {
     return db.insert('Reminders', reminder.toMap()..remove('id'));
   }
 
-  /// كل التذكيرات القادمة مع تفاصيل العميل والأليفة والموعد
+  /// All upcoming reminders with client, pet, and appointment details
   Future<List<Map<String, dynamic>>> getUpcomingRemindersWithDetails() async {
     final db = await database;
     final today = DateTime.now().toIso8601String().substring(0, 10);
@@ -798,7 +798,7 @@ class DBHelper {
     ''', [today]);
   }
 
-  // ==================== Admissions (فندقة / إجراء طبي) ====================
+  // ==================== Admissions (boarding / medical procedure) ====================
 
   Future<int> insertAdmission(Admission admission) async {
     final db = await database;
@@ -816,7 +816,7 @@ class DBHelper {
     return res.map((e) => Admission.fromMap(e)).toList();
   }
 
-  /// آخر Admission نشط (لم يخرج/يسلَّم بعد) لأليفة معينة
+  /// The most recent active Admission (not yet checked out/delivered) for a given pet
   Future<Admission?> getActiveAdmissionForPet(int petId) async {
     final db = await database;
     final res = await db.query(
@@ -830,7 +830,7 @@ class DBHelper {
     return Admission.fromMap(res.first);
   }
 
-  /// كل الأليفات الموجودة حالياً في الفندقة مع بيانات العميل والأليفة
+  /// All pets currently present in the hotel, with client and pet data
   Future<List<Map<String, dynamic>>> getCurrentlyInHotelWithDetails() async {
     final db = await database;
     return db.rawQuery('''
@@ -838,12 +838,12 @@ class DBHelper {
       FROM Admissions ad
       JOIN Pets p ON ad.pet_id = p.id
       JOIN Clients c ON p.client_id = c.id
-      WHERE ad.type = 'hotel' AND ad.status = 'موجودة في الفندقة'
+      WHERE ad.type = 'hotel' AND ad.status = 'In Hotel'
       ORDER BY ad.entry_date ASC
     ''');
   }
 
-  /// كل الأليفات الموجودة حالياً (فندقة عادية/علاجية أو إجراء طبي) مع بيانات العميل والأليفة
+  /// All pets currently present (regular/treatment boarding or medical procedure), with client and pet data
   Future<List<Map<String, dynamic>>> getCurrentlyPresentWithDetails() async {
     final db = await database;
     return db.rawQuery('''
@@ -856,7 +856,7 @@ class DBHelper {
     ''', [PetStatus.inHotel, PetStatus.inClinic]);
   }
 
-  /// الأليفات المستحق تسليمها اليوم (تاريخ الخروج المتوقع = اليوم) وما زالت موجودة فعلياً
+  /// Pets due for delivery today (expected exit date = today) and still actually present
   Future<List<Map<String, dynamic>>> getAdmissionsDueTodayWithDetails() async {
     final db = await database;
     final today = DateTime.now().toIso8601String().substring(0, 10);
@@ -870,7 +870,7 @@ class DBHelper {
     ''', [PetStatus.inHotel, PetStatus.inClinic, today]);
   }
 
-  /// كل الأليفات النشطة حالياً (فندقة/إجراء) الخاصة بعميل معين حسب رقم جواله - تُستخدم في شاشة تسجيل الخروج
+  /// All currently active pets (boarding/procedure) belonging to a given client by their phone number - used in the check-out screen
   Future<List<Map<String, dynamic>>> getActiveAdmissionsByPhone(String phone) async {
     final db = await database;
     return db.rawQuery('''
@@ -883,7 +883,7 @@ class DBHelper {
     ''', [phone, PetStatus.inHotel, PetStatus.inClinic]);
   }
 
-  // ==================== Admission Notes (ملاحظات أثناء وجود الأليفة) ====================
+  // ==================== Admission Notes (notes during the pet's stay) ====================
 
   Future<int> insertAdmissionNote(AdmissionNote note) async {
     final db = await database;
@@ -911,7 +911,7 @@ class DBHelper {
     return res.map((e) => AdmissionNote.fromMap(e)).toList();
   }
 
-  // ==================== ملف العميل الكامل (لصفحة البحث) ====================
+  // ==================== Full client profile (for the search page) ====================
 
   Future<Map<String, dynamic>?> getClientFullProfile(String phone) async {
     final client = await getClientByPhone(phone);
@@ -925,7 +925,7 @@ class DBHelper {
       final appointments = await getAppointmentsByPetId(pet.id!);
       final admissions = await getAdmissionsByPetId(pet.id!);
 
-      // جلب ملاحظات كل عملية دخول (فندقة/إجراء طبي) الخاصة بهذه الأليفة
+      // Fetch the notes for each admission (boarding/medical procedure) for this pet
       final Map<int, List<AdmissionNote>> notesByAdmission = {};
       for (final admission in admissions) {
         if (admission.id != null) {
@@ -948,10 +948,10 @@ class DBHelper {
     };
   }
 
-  // ==================== باقات التطعيمات (Vaccination Packages) ====================
-  // كل باقة مرتبطة بأليفة واحدة محددة (وليست قالباً عاماً قابلاً لإعادة الاستخدام)
+  // ==================== Vaccination Packages ====================
+  // Each package is linked to one specific pet (not a generic reusable template)
 
-  /// القائمة الرئيسية بأسماء التطعيمات المتاحة للاختيار منها
+  /// The master list of vaccine names available for selection
   Future<List<Map<String, dynamic>>> getMasterVaccines() async {
     final db = await database;
     return db.query('MasterVaccines', orderBy: 'name ASC');
@@ -962,11 +962,11 @@ class DBHelper {
     return db.insert('MasterVaccines', {'name': name}, conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
-  /// إنشاء باقة تطعيمات جديدة لأليفة محددة، مع قائمة أسماء التطعيمات المختارة لها
+  /// Create a new vaccination package for a specific pet, with the list of vaccine names selected for it
   Future<int> createVaccinationPackageForPet({
     required int petId,
     required List<String> vaccineNames,
-    String name = 'باقة تطعيمات',
+    String name = 'Vaccination Package',
   }) async {
     final db = await database;
     final packageId = await db.insert('VaccinationPackages', {'name': name, 'pet_id': petId});
@@ -983,12 +983,12 @@ class DBHelper {
 
   Future<int> deleteVaccinationPackage(int id) async {
     final db = await database;
-    // نحذف عناصر الباقة أولاً ثم الباقة نفسها
+    // Delete the package's items first, then the package itself
     await db.delete('VaccinationPackageItems', where: 'package_id = ?', whereArgs: [id]);
     return db.delete('VaccinationPackages', where: 'id = ?', whereArgs: [id]);
   }
 
-  /// كل الباقات مع اسم العميل والأليفة التابعة لهم لعرضها في شاشة الباقات
+  /// All packages with the name of the client and pet they belong to, for display in the packages screen
   Future<List<Map<String, dynamic>>> getVaccinationPackagesWithDetails() async {
     final db = await database;
     return db.rawQuery('''
@@ -1000,7 +1000,7 @@ class DBHelper {
     ''');
   }
 
-  /// باقة التطعيمات الخاصة بأليفة معينة (إن وجدت) - تُستخدم في شاشة زيارة العيادة
+  /// The vaccination package for a given pet (if any) - used in the clinic visit screen
   Future<Map<String, dynamic>?> getVaccinationPackageForPet(int petId) async {
     final db = await database;
     final res = await db.query('VaccinationPackages', where: 'pet_id = ?', whereArgs: [petId], orderBy: 'id DESC', limit: 1);
@@ -1037,7 +1037,7 @@ class DBHelper {
     );
   }
 
-  /// تحديد أن تطعيمة معينة أُعطيت (أو التراجع عن ذلك)، وربطها بالزيارة إن وُجدت
+  /// Mark that a given vaccine was administered (or undo that), and link it to the visit if one exists
   Future<int> setVaccineItemGiven({
     required int itemId,
     required bool given,
@@ -1057,7 +1057,7 @@ class DBHelper {
     );
   }
 
-  // ==================== نظام الاستمارات الإلكترونية (Forms) ====================
+  // ==================== Electronic Forms System (Forms) ====================
 
   Future<List<Map<String, dynamic>>> getFormTemplates() async {
     final db = await database;
@@ -1071,8 +1071,8 @@ class DBHelper {
     return res.first;
   }
 
-  /// القالب النشط الحالي لنوع خدمة معيّن (إن وُجد) - لا تظهر الاستمارة تلقائياً
-  /// إلا إذا كان هناك قالب نشط واحد على الأقل لهذا النوع
+  /// The current active template for a given service type (if any) - the form does not
+  /// appear automatically unless there is at least one active template for that type
   Future<Map<String, dynamic>?> getActiveTemplateForServiceType(String serviceType) async {
     final db = await database;
     final res = await db.query(
@@ -1193,8 +1193,8 @@ class DBHelper {
     return db.update('FormSubmissions', {'pdf_path': pdfPath}, where: 'id = ?', whereArgs: [submissionId]);
   }
 
-  /// يربط استمارة تمت تعبئتها قبل إنشاء سجل الدخول (Admission) بالسجل الفعلي
-  /// بعد إنشائه - يُستخدم في تدفق "الاستمارة أولاً ثم تسجيل الدخول"
+  /// Links a form filled out before the admission record was created to the actual
+  /// record once it exists - used in the "form first, then check-in" flow
   Future<int> updateFormSubmissionAdmissionId(int submissionId, int admissionId) async {
     final db = await database;
     return db.update('FormSubmissions', {'admission_id': admissionId}, where: 'id = ?', whereArgs: [submissionId]);
@@ -1205,7 +1205,7 @@ class DBHelper {
     return db.query('FormSubmissions', where: 'client_id = ?', whereArgs: [clientId], orderBy: 'id DESC');
   }
 
-  /// كل الاستمارات المحفوظة على الإطلاق - تُستخدم لإعادة إنشاء ملفات PDF القديمة
+  /// All forms ever saved - used to regenerate old PDF files
   Future<List<Map<String, dynamic>>> getAllFormSubmissions() async {
     final db = await database;
     return db.query('FormSubmissions', orderBy: 'id ASC');
@@ -1230,7 +1230,7 @@ class DBHelper {
     });
   }
 
-  // ==================== الشاور والحلاقة (Grooming) ====================
+  // ==================== Grooming & Bathing (Grooming) ====================
 
   Future<int> insertGroomingService(GroomingService service) async {
     final db = await database;
@@ -1256,7 +1256,7 @@ class DBHelper {
     return res.map((e) => GroomingService.fromMap(e)).toList();
   }
 
-  /// كل خدمات الشاور والحلاقة المسجّلة اليوم مع بيانات الأليفة والعميل
+  /// All grooming & bathing services logged today, with pet and client data
   Future<List<Map<String, dynamic>>> getTodayGroomingServicesWithDetails() async {
     final db = await database;
     final today = DateTime.now().toIso8601String().substring(0, 10);
@@ -1271,10 +1271,10 @@ class DBHelper {
     ''', [today]);
   }
 
-  /// عداد الشاور الحالي للأليفة (0-3) وهل استحقت الشاور المجاني - يُقرأ
-  /// مباشرة من عمود الأليفة نفسه (رقم مخزَّن وليس محسوباً فقط)، حتى يقدر
-  /// الموظف يعدّله يدوياً في أي وقت (مثلاً لأليفة لديها شاورات سابقة قبل
-  /// تركيب التطبيق).
+  /// The pet's current bath counter (0-3) and whether it has earned a free bath - read
+  /// directly from the pet's own column (a stored number, not just calculated), so
+  /// staff can manually adjust it at any time (for example, for a pet with previous baths from
+  /// before the app was installed).
   Future<Map<String, dynamic>> getPetShowerProgress(int petId) async {
     final pet = await getPetById(petId);
     final count = pet?.showerCount ?? 0;
@@ -1284,7 +1284,7 @@ class DBHelper {
     };
   }
 
-  /// زيادة عداد الشاور بواحد (تُستدعى تلقائياً عند تسجيل خدمة شاور مدفوعة)
+  /// Increase the bath counter by one (called automatically when a paid bath service is logged)
   Future<int> incrementPetShowerCount(int petId) async {
     final db = await database;
     final pet = await getPetById(petId);
@@ -1292,14 +1292,14 @@ class DBHelper {
     return db.update('Pets', {'shower_count': newCount}, where: 'id = ?', whereArgs: [petId]);
   }
 
-  /// تصفير عداد الشاور (تُستدعى تلقائياً عند استخدام الشاور المجاني)
+  /// Reset the bath counter to zero (called automatically when the free bath is used)
   Future<int> resetPetShowerCount(int petId) async {
     final db = await database;
     return db.update('Pets', {'shower_count': 0}, where: 'id = ?', whereArgs: [petId]);
   }
 
-  /// تعديل يدوي مباشر لعداد الشاور من قِبل الموظف (مثلاً لإضافة شاورات
-  /// سابقة للأليفة من قبل تركيب التطبيق)
+  /// A direct manual adjustment of the bath counter by staff (for example, to add
+  /// previous baths for a pet from before the app was installed)
   Future<int> setPetShowerCount(int petId, int count) async {
     final db = await database;
     return db.update('Pets', {'shower_count': count}, where: 'id = ?', whereArgs: [petId]);

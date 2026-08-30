@@ -30,14 +30,14 @@ class _CurrentHotelScreenState extends State<CurrentHotelScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('المتواجدون حالياً في الفندقة')),
+      appBar: AppBar(title: const Text('Currently in the Hotel')),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _future,
         builder: (context, snapshot) {
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           final items = snapshot.data!;
           if (items.isEmpty) {
-            return const Center(child: Text('لا يوجد أليفات في الفندقة حالياً'));
+            return const Center(child: Text('No pets currently in the hotel'));
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -56,10 +56,10 @@ class _CurrentHotelScreenState extends State<CurrentHotelScreen> {
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('العميل: ${item['client_name']} — ${item['client_phone']}'),
-                          Text('نوع الفندقة: ${item['boarding_type'] ?? '-'}'),
-                          Text('تاريخ الدخول: ${item['entry_date']}'),
-                          Text('الخروج المتوقع: ${DateHelper.displayDate(item['expected_exit_date'])}'),
+                          Text('Client: ${item['client_name']} — ${item['client_phone']}'),
+                          Text('Boarding Type: ${item['boarding_type'] ?? '-'}'),
+                          Text('Entry Date: ${item['entry_date']}'),
+                          Text('Expected Exit: ${DateHelper.displayDate(item['expected_exit_date'])}'),
                         ],
                       ),
                       isThreeLine: true,
@@ -74,12 +74,13 @@ class _CurrentHotelScreenState extends State<CurrentHotelScreen> {
                           );
                           if (result == true) setState(_reload);
                         },
-                        child: const Text('تسجيل خروج'),
+                        child: const Text('Checkout'),
                       ),
                     ),
-                    // زر "إرسال" له مساحته الخاصة أسفل البطاقة بدل ازدحامه مع
-                    // زر "تسجيل خروج" داخل نفس الحيّز الضيق (trailing) - وهو
-                    // ما كان يسبب اختفاءه بصرياً رغم أن الشرط كان يتحقق فعلياً
+                    // The "send" button gets its own space below the card instead of being
+                    // crowded together with the "checkout" button inside the same narrow
+                    // trailing area - which was causing it to visually disappear even
+                    // though the condition was actually being met
                     if (isDueToday)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
@@ -88,7 +89,7 @@ class _CurrentHotelScreenState extends State<CurrentHotelScreen> {
                           child: OutlinedButton.icon(
                             style: OutlinedButton.styleFrom(foregroundColor: AppColors.success),
                             icon: const Icon(Icons.chat, size: 18),
-                            label: const Text('إرسال'),
+                            label: const Text('Send'),
                             onPressed: () {
                               final message = WhatsAppHelper.buildHotelCheckoutTodayMessage(
                                 petName: item['pet_name'],

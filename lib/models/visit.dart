@@ -2,12 +2,12 @@ class Visit {
   final int? id;
   final int petId;
   final String date; // yyyy-MM-dd
-  final String reason; // من VisitReason
-  final String? description; // الفحص / ملاحظات عامة
-  final String? diagnosis; // التشخيص
-  final String? treatment; // العلاج
-  final String? recommendations; // التوصيات
-  final int? appointmentId; // الموعد المرتبط (إن كانت الزيارة نتيجة "حضور" موعد)
+  final String reason; // From VisitReason
+  final String? description; // Examination / general notes
+  final String? diagnosis; // Diagnosis
+  final String? treatment; // Treatment
+  final String? recommendations; // Recommendations
+  final int? appointmentId; // The related appointment (if the visit resulted from an appointment being "attended")
 
   Visit({
     this.id,

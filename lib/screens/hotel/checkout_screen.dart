@@ -13,12 +13,13 @@ import '../../utils/send_to_client_prompt.dart';
 import '../forms/fill_form_screen.dart';
 import '../home_screen.dart';
 
-/// شاشة تسجيل الخروج/التسليم الموحّدة — تعمل لأي نوع (فندقة عادية/علاجية أو إجراء طبي)
-/// وتنتهي دائماً بالحالة "تم التسليم" كما هو مطلوب.
+/// Unified checkout/delivery screen — works for any type (regular/treatment
+/// boarding or medical procedure) and always ends with the "Delivered" status, as required.
 ///
-/// إذا كانت هناك استمارة إلكترونية نشطة لخروج هذا النوع من الفندقة، تظهر
-/// مباشرة عند فتح الشاشة (مع ملاحظات التواجد إن وُجدت) وتحل محل صورة عقد
-/// الاستلام الورقي، ويتم تسجيل الخروج تلقائياً بعد اعتمادها.
+/// If there is an active electronic form for this boarding type's checkout,
+/// it appears immediately when the screen opens (with any stay notes) and
+/// replaces the paper pickup contract photo; checkout is recorded
+/// automatically once it is approved.
 class CheckoutScreen extends StatefulWidget {
   final Admission admission;
   final String petName;
@@ -61,7 +62,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _activeTemplate = template;
       _loadingTemplate = false;
     });
-    // تظهر الاستمارة مباشرة بمجرد فتح الشاشة إن وُجدت
+    // The form appears immediately once the screen opens, if one exists
     if (template != null && !_formTriggered) {
       _formTriggered = true;
       WidgetsBinding.instance.addPostFrameCallback((_) => _openFormAndCheckout());
@@ -99,12 +100,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('التقاط صورة عقد الاستلام'),
+              title: const Text('Take a photo of the pickup contract'),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('اختيار من المعرض'),
+              title: const Text('Choose from Gallery'),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
           ],
@@ -122,7 +123,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final updated = widget.admission.copyWith(
       actualExitDate: DateHelper.nowDateTime(),
       exitContractImage: _receiptImagePath,
-      status: PetStatus.delivered, // "تم التسليم" موحّدة لكل الحالات
+      status: PetStatus.delivered, // "Delivered" is unified across all case types
       notes: _notesController.text.trim().isEmpty ? widget.admission.notes : _notesController.text.trim(),
     );
 
@@ -133,10 +134,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _saving = false);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تم تسليم "${widget.petName}" لصاحبها')),
+      SnackBar(content: Text('"${widget.petName}" delivered to its owner')),
     );
 
-    // نعرض للموظف مباشرة خانة "إرسال للعميل" (لا تُرسل تلقائياً)
+    // We show the staff member the "send to client" option directly (it is not sent automatically)
     final pet = await DBHelper.instance.getPetById(widget.admission.petId);
     final client = pet != null ? await DBHelper.instance.getClientById(pet.clientId) : null;
     if (mounted && client != null) {
@@ -162,7 +163,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> _checkout() async {
     if (_receiptImagePath == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('صورة عقد الاستلام إلزامية ولا يمكن إنهاء العملية بدونها')),
+        const SnackBar(content: Text('A pickup contract photo is required and the process cannot be completed without it')),
       );
       return;
     }
@@ -172,30 +173,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loadingTemplate || _activeTemplate != null) {
-      // الاستمارة تُفتح تلقائياً؛ نعرض مؤشر تحميل بسيط في هذه الأثناء
+      // The form opens automatically; we show a simple loading indicator in the meantime
       return Scaffold(
-        appBar: AppBar(title: Text('تسجيل خروج — ${widget.petName}')),
+        appBar: AppBar(title: Text('Checkout — ${widget.petName}')),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text('تسجيل خروج — ${widget.petName}')),
+      appBar: AppBar(title: Text('Checkout — ${widget.petName}')),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: ListView(
           children: [
-            Text('تاريخ ووقت الخروج: ${DateHelper.nowDateTime()}', style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text('Checkout Date & Time: ${DateHelper.nowDateTime()}', style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
             TextField(
               controller: _notesController,
-              decoration: const InputDecoration(labelText: 'ملاحظات', prefixIcon: Icon(Icons.notes)),
+              decoration: const InputDecoration(labelText: 'Notes', prefixIcon: Icon(Icons.notes)),
               maxLines: 3,
             ),
             const SizedBox(height: 16),
             OutlinedButton.icon(
               icon: const Icon(Icons.camera_alt),
-              label: Text(_receiptImagePath == null ? 'التقاط صورة عقد الاستلام *' : 'تم اختيار صورة عقد الاستلام ✓'),
+              label: Text(_receiptImagePath == null ? 'Take Pickup Contract Photo *' : 'Pickup contract photo selected ✓'),
               onPressed: _pickReceiptImage,
             ),
             if (_receiptImagePath != null) ...[
@@ -210,7 +211,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               icon: _saving
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                   : const Icon(Icons.check_circle),
-              label: Text(_saving ? 'جاري الحفظ...' : 'تأكيد تسجيل الخروج'),
+              label: Text(_saving ? 'Saving...' : 'Confirm Checkout'),
               onPressed: _saving ? null : _checkout,
             ),
           ],

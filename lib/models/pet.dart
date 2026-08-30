@@ -4,16 +4,16 @@ class Pet {
   final String name;
   final String type;
   final String? breed;
-  final String? gender; // ذكر / أنثى
-  final String? birthDate; // yyyy-MM-dd (اختياري)
+  final String? gender; // Male / Female
+  final String? birthDate; // yyyy-MM-dd (optional)
   final double? weight;
   final String? color;
   final String? imagePath;
-  final String? microchip; // رقم المايكروشيب (اختياري)
+  final String? microchip; // Microchip number (optional)
   final String? notes;
-  final String status; // من PetStatus
+  final String status; // From PetStatus
   final bool archived;
-  final int showerCount; // عداد الشاور (0-3) - قابل للتعديل اليدوي من الموظف
+  final int showerCount; // Bath counter (0-3) - manually editable by staff
 
   Pet({
     this.id,
@@ -28,7 +28,7 @@ class Pet {
     this.imagePath,
     this.microchip,
     this.notes,
-    this.status = 'طبيعي',
+    this.status = 'Normal',
     this.archived = false,
     this.showerCount = 0,
   });
@@ -67,7 +67,7 @@ class Pet {
       imagePath: map['image_path'] as String?,
       microchip: map['microchip'] as String?,
       notes: map['notes'] as String?,
-      status: (map['status'] as String?) ?? 'طبيعي',
+      status: (map['status'] as String?) ?? 'Normal',
       archived: (map['archived'] as int?) == 1,
       showerCount: (map['shower_count'] as int?) ?? 0,
     );

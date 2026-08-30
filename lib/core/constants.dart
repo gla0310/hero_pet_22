@@ -1,75 +1,77 @@
-/// حالات الأليفة المختلفة حسب مكانها
+/// Different pet statuses depending on their location
 class PetStatus {
-  static const String normal = 'طبيعي'; // لا يوجد إجراء حالي
-  static const String inHotel = 'موجودة في الفندقة';
-  static const String checkedOut = 'تم الخروج';
-  static const String inClinic = 'موجودة في العيادة';
-  static const String delivered = 'تم التسليم';
+  static const String normal = 'Normal'; // No current procedure
+  static const String inHotel = 'In Hotel';
+  static const String checkedOut = 'Checked Out';
+  static const String inClinic = 'In Clinic';
+  static const String delivered = 'Delivered';
 }
 
-/// أنواع الفندقة
+/// Boarding types
 class BoardingType {
-  static const String treatment = 'فندقة علاجية';
-  static const String normal = 'فندقة عادية';
+  static const String treatment = 'Treatment Boarding';
+  static const String normal = 'Regular Boarding';
 }
 
-/// أنواع الإدخال في جدول Admissions
+/// Admission types in the Admissions table
 class AdmissionType {
   static const String hotel = 'hotel';
   static const String procedure = 'procedure';
 }
 
-/// أسباب زيارة العيادة
+/// Reasons for a clinic visit
 class VisitReason {
-  static const String checkup = 'فحص';
-  static const String followUp = 'متابعة';
-  static const String vaccination = 'تطعيم';
-  static const String procedure = 'إجراء طبي';
-  static const String grooming = 'شاور وحلاقة';
-  static const String other = 'أخرى';
+  static const String checkup = 'Checkup';
+  static const String followUp = 'Follow-up';
+  static const String vaccination = 'Vaccination';
+  static const String procedure = 'Medical Procedure';
+  static const String grooming = 'Grooming & Bathing';
+  static const String other = 'Other';
 
   static const List<String> all = [checkup, followUp, vaccination, procedure, grooming, other];
 }
 
-/// أنواع الأليفات الشائعة (قابلة للتعديل من المستخدم أيضاً كحقل حر)
+/// Common pet types (also editable by the user as a free-text field)
 class PetTypes {
-  static const List<String> common = ['قط', 'كلب', 'طائر', 'أرنب', 'أخرى'];
+  static const List<String> common = ['Cat', 'Dog', 'Bird', 'Rabbit', 'Other'];
 }
 
-/// حالة الموعد
+/// Appointment status
 class AppointmentStatus {
-  static const String pending = 'بانتظار';
-  static const String attended = 'حضر';
-  static const String noShow = 'لم يحضر';
-  static const String cancelled = 'أُلغي';
-  static const String rescheduled = 'أُعيدت جدولته';
+  static const String pending = 'Pending';
+  static const String attended = 'Attended';
+  static const String noShow = 'No Show';
+  static const String cancelled = 'Cancelled';
+  static const String rescheduled = 'Rescheduled';
 
   static const List<String> all = [pending, attended, noShow, cancelled, rescheduled];
 }
 
-/// أنواع الخدمة التي تُربط بها الاستمارات الإلكترونية - كل نوع خدمة يمكن أن
-/// يكون له قالب استمارة واحد نشط. يظهر تلقائياً عند اختيار الخدمة المطابقة.
-/// خدمات قسم الشاور والحلاقة - يمكن اختيار أكثر من صنف في نفس العملية
+/// Service types that electronic forms are linked to - each service type can
+/// have one active form template. It appears automatically when the matching
+/// service is selected.
+/// Grooming & bathing department services - more than one category can be
+/// selected in the same operation
 class GroomingServiceType {
-  static const String hygienePackage = 'باقة النظافة'; // فحص + حلاقة + شاور
-  static const String healthPackage = 'الباقة الصحية'; // فحص + حلاقة + شاور علاجي
-  static const String showerNormal = 'شاور عادي';
-  static const String showerTreatment = 'شاور علاجي';
-  static const String haircut = 'حلاقة';
+  static const String hygienePackage = 'Hygiene Package'; // Checkup + Haircut + Bath
+  static const String healthPackage = 'Health Package'; // Checkup + Haircut + Therapeutic Bath
+  static const String showerNormal = 'Regular Bath';
+  static const String showerTreatment = 'Therapeutic Bath';
+  static const String haircut = 'Haircut';
 
   static const List<String> all = [hygienePackage, healthPackage, showerNormal, showerTreatment, haircut];
 
-  /// كل الخدمات تُحتسب كشاور ضمن عداد الولاء ما عدا "حلاقة" بمفردها
+  /// All services count as a bath for the loyalty counter, except "Haircut" on its own
   static bool servicesCountAsShower(List<String> selected) {
     return selected.any((s) => s != haircut);
   }
 }
 
-/// حالة خدمة الشاور والحلاقة
+/// Grooming & bathing service status
 class GroomingStatus {
-  static const String pending = 'انتظار';
-  static const String inProgress = 'يخضع للخدمة';
-  static const String completed = 'انتهى';
+  static const String pending = 'Pending';
+  static const String inProgress = 'In Progress';
+  static const String completed = 'Completed';
 
   static const List<String> all = [pending, inProgress, completed];
 }
@@ -94,54 +96,54 @@ class FormServiceType {
   static String label(String key) {
     switch (key) {
       case checkinHotelNormal:
-        return 'دخول فندقة عادية';
+        return 'Regular Hotel Check-in';
       case checkoutHotelNormal:
-        return 'خروج فندقة عادية';
+        return 'Regular Hotel Check-out';
       case checkinHotelTreatment:
-        return 'دخول فندقة علاجية';
+        return 'Treatment Hotel Check-in';
       case checkoutHotelTreatment:
-        return 'خروج فندقة علاجية';
+        return 'Treatment Hotel Check-out';
       case checkinProcedure:
-        return 'دخول إجراء طبي';
+        return 'Medical Procedure Check-in';
       case checkoutProcedure:
-        return 'خروج إجراء طبي';
-      case 'procedure': // مفتاح قديم قبل الفصل - للتوافق مع أي بيانات لم تُهاجَر
-        return 'الإجراءات الطبية';
+        return 'Medical Procedure Check-out';
+      case 'procedure': // Legacy key before the split - for compatibility with any unmigrated data
+        return 'Medical Procedures';
       default:
         return key;
     }
   }
 }
 
-/// نوع الموعد - يُستخدم في شاشة المواعيد
+/// Appointment type - used in the appointments screen
 class AppointmentType {
-  static const String followUp = 'متابعة';
-  static const String vaccination = 'تطعيم';
-  static const String procedure = 'إجراء طبي';
-  static const String grooming = 'شاور وحلاقة';
-  static const String other = 'أخرى';
+  static const String followUp = 'Follow-up';
+  static const String vaccination = 'Vaccination';
+  static const String procedure = 'Medical Procedure';
+  static const String grooming = 'Grooming & Bathing';
+  static const String other = 'Other';
 
   static const List<String> all = [followUp, vaccination, procedure, grooming, other];
 }
 
-/// خيارات سبب "الموعد القادم" الذي يمكن إنشاؤه مباشرة من شاشة زيارة العيادة
+/// Options for the "next appointment" reason, which can be created directly from the clinic visit screen
 class FollowUpReason {
-  static const String followUp = 'متابعة';
-  static const String vaccination = 'تطعيم';
-  static const String procedure = 'إجراء طبي';
-  static const String grooming = 'شاور وحلاقة';
-  static const String other = 'أخرى';
+  static const String followUp = 'Follow-up';
+  static const String vaccination = 'Vaccination';
+  static const String procedure = 'Medical Procedure';
+  static const String grooming = 'Grooming & Bathing';
+  static const String other = 'Other';
 
   static const List<String> all = [followUp, vaccination, procedure, grooming, other];
 }
 
-/// نوع الحالة عند تسجيل دخول الأليفة (فندقة عادية / فندقة علاجية / إجراء طبي)
-/// هذا هو الاختيار الموحّد الذي يظهر للموظف في شاشة "تسجيل دخول"،
-/// ثم يُترجم داخلياً إلى (type + boardingType) في جدول Admissions.
+/// Admission type when checking a pet in (regular boarding / treatment boarding / medical procedure)
+/// This is the unified choice shown to staff on the "check-in" screen,
+/// which is then translated internally into (type + boardingType) in the Admissions table.
 class AdmissionKind {
-  static const String hotelNormal = 'فندقة عادية';
-  static const String hotelTreatment = 'فندقة علاجية';
-  static const String procedure = 'إجراء طبي';
+  static const String hotelNormal = 'Regular Boarding';
+  static const String hotelTreatment = 'Treatment Boarding';
+  static const String procedure = 'Medical Procedure';
 
   static const List<String> all = [hotelNormal, hotelTreatment, procedure];
 

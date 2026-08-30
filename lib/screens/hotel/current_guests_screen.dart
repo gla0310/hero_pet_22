@@ -8,7 +8,7 @@ import '../../utils/whatsapp_helper.dart';
 import '../../utils/send_to_client_prompt.dart';
 import 'admission_notes_screen.dart';
 
-/// تعرض جميع الأليفات الموجودة حالياً سواء فندقة عادية/علاجية أو إجراء طبي
+/// Shows all pets currently present, whether regular/treatment boarding or a medical procedure
 class CurrentGuestsScreen extends StatefulWidget {
   const CurrentGuestsScreen({super.key});
 
@@ -41,14 +41,14 @@ class _CurrentGuestsScreenState extends State<CurrentGuestsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('المتواجدون حالياً')),
+      appBar: AppBar(title: const Text('Currently Present')),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _future,
         builder: (context, snapshot) {
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           final items = snapshot.data!;
           if (items.isEmpty) {
-            return const Center(child: Text('لا يوجد أليفات موجودة حالياً'));
+            return const Center(child: Text('No pets currently present'));
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -58,8 +58,8 @@ class _CurrentGuestsScreenState extends State<CurrentGuestsScreen> {
               final color = _kindColor(item);
               final daysLate = DateHelper.daysLate(item['expected_exit_date']);
               final isOverdue = daysLate > 0;
-              // خانة الإرسال تظهر فقط لأنواع الفندقة (عادية/علاجية) - وليس
-              // الإجراء الطبي - وفقط عندما يكون موعد الخروج المتوقع اليوم
+              // The "send" button appears only for boarding types (regular/treatment) -
+              // not for a medical procedure - and only when the expected exit date is today
               final isHotelType = item['type'] != AdmissionType.procedure;
               final isDueToday = (item['expected_exit_date'] as String?)?.split(' ').first == DateHelper.today();
               final showSendButton = isHotelType && isDueToday;
@@ -82,10 +82,10 @@ class _CurrentGuestsScreenState extends State<CurrentGuestsScreen> {
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('العميل: ${item['client_name']} — ${item['client_phone']}'),
-                          Text('نوع الحالة: ${_kindLabel(item)}'),
-                          Text('تاريخ الدخول: ${item['entry_date']}'),
-                          Text('الخروج المتوقع: ${DateHelper.displayDate(item['expected_exit_date'])}'),
+                          Text('Client: ${item['client_name']} — ${item['client_phone']}'),
+                          Text('Case Type: ${_kindLabel(item)}'),
+                          Text('Entry Date: ${item['entry_date']}'),
+                          Text('Expected Exit: ${DateHelper.displayDate(item['expected_exit_date'])}'),
                           if (isOverdue)
                             Padding(
                               padding: const EdgeInsets.only(top: 6),
@@ -96,7 +96,7 @@ class _CurrentGuestsScreenState extends State<CurrentGuestsScreen> {
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
-                                  'متأخر عن الخروج — $daysLate يوم',
+                                  'Overdue for checkout — $daysLate day(s)',
                                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
                                 ),
                               ),
@@ -116,8 +116,8 @@ class _CurrentGuestsScreenState extends State<CurrentGuestsScreen> {
                         setState(_reload);
                       },
                     ),
-                    // صف مستقل بمساحته الخاصة لزر "إرسال" - بجانب الأليف لكن
-                    // خارج منطقة trailing الضيقة، وبدون أي علاقة بتسجيل الخروج
+                    // A standalone row with its own space for the "send" button - next to the
+                    // pet but outside the narrow trailing area, and unrelated to checkout
                     if (showSendButton)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
@@ -126,7 +126,7 @@ class _CurrentGuestsScreenState extends State<CurrentGuestsScreen> {
                           child: OutlinedButton.icon(
                             style: OutlinedButton.styleFrom(foregroundColor: AppColors.success),
                             icon: const Icon(Icons.chat, size: 18),
-                            label: const Text('إرسال'),
+                            label: const Text('Send'),
                             onPressed: () {
                               final message = WhatsAppHelper.buildHotelCheckoutTodayMessage(
                                 petName: item['pet_name'],

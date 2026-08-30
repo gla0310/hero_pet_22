@@ -67,7 +67,7 @@ class PetProfileScreen extends StatelessWidget {
       context,
       MaterialPageRoute(builder: (_) => EditPetScreen(pet: pet)),
     );
-    // نرجع لملف العميل ليتحدث تلقائياً بالبيانات الجديدة
+    // Go back to the client profile so it automatically refreshes with the new data
     if (context.mounted) Navigator.pop(context);
   }
 
@@ -75,11 +75,11 @@ class PetProfileScreen extends StatelessWidget {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('أرشفة الأليفة'),
-        content: Text('ستختفي "${pet.name}" من ملف العميل، وتبقى كل سجلاتها الطبية محفوظة ويمكن استعادتها من الأرشيف. متابعة؟'),
+        title: const Text('Archive Pet'),
+        content: Text('"${pet.name}" will disappear from the client profile, while all their medical records remain saved and can be restored from the archive. Continue?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('أرشفة')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Archive')),
         ],
       ),
     );
@@ -87,7 +87,7 @@ class PetProfileScreen extends StatelessWidget {
 
     await DBHelper.instance.archivePet(pet.id!);
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم أرشفة الأليفة')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pet archived')));
     Navigator.pop(context);
   }
 
@@ -115,10 +115,10 @@ class PetProfileScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('ملف ${pet.name}'),
+        title: Text('${pet.name}\'s Profile'),
         actions: [
-          IconButton(icon: const Icon(Icons.edit), tooltip: 'تعديل بيانات الأليفة', onPressed: () => _editPet(context)),
-          IconButton(icon: const Icon(Icons.archive_outlined), tooltip: 'أرشفة الأليفة', onPressed: () => _archivePet(context)),
+          IconButton(icon: const Icon(Icons.edit), tooltip: 'Edit pet information', onPressed: () => _editPet(context)),
+          IconButton(icon: const Icon(Icons.archive_outlined), tooltip: 'Archive pet', onPressed: () => _archivePet(context)),
         ],
       ),
       body: ListView(
@@ -138,7 +138,7 @@ class PetProfileScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(pet.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                    Text('صاحبها: $clientName', style: const TextStyle(color: AppColors.textLight)),
+                    Text('Owner: $clientName', style: const TextStyle(color: AppColors.textLight)),
                     const SizedBox(height: 6),
                     StatusBadge(status: pet.status),
                   ],
@@ -152,7 +152,7 @@ class PetProfileScreen extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton.icon(
                 icon: Icon(pet.status == PetStatus.inHotel ? Icons.logout : Icons.check_circle),
-                label: Text(pet.status == PetStatus.inHotel ? 'تسجيل خروج من الفندقة' : 'تسليم الأليفة'),
+                label: Text(pet.status == PetStatus.inHotel ? 'Check Out from Hotel' : 'Deliver Pet'),
                 onPressed: () async {
                   final active = admissions.firstWhere(
                     (a) => a.status == pet.status,
@@ -174,14 +174,14 @@ class PetProfileScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  InfoRow(label: 'النوع', value: pet.type),
-                  if (pet.breed != null) InfoRow(label: 'السلالة', value: pet.breed!),
-                  if (pet.gender != null) InfoRow(label: 'الجنس', value: pet.gender!),
-                  if (pet.birthDate != null) InfoRow(label: 'العمر/الميلاد', value: pet.birthDate!),
-                  if (pet.weight != null) InfoRow(label: 'الوزن', value: '${pet.weight} كجم'),
-                  if (pet.color != null) InfoRow(label: 'اللون', value: pet.color!),
-                  if (pet.microchip != null && pet.microchip!.isNotEmpty) InfoRow(label: 'المايكروشيب', value: pet.microchip!),
-                  if (pet.notes != null) InfoRow(label: 'ملاحظات', value: pet.notes!),
+                  InfoRow(label: 'Type', value: pet.type),
+                  if (pet.breed != null) InfoRow(label: 'Breed', value: pet.breed!),
+                  if (pet.gender != null) InfoRow(label: 'Gender', value: pet.gender == 'Female' ? 'Female' : 'Male'),
+                  if (pet.birthDate != null) InfoRow(label: 'Age/Birth Date', value: pet.birthDate!),
+                  if (pet.weight != null) InfoRow(label: 'Weight', value: '${pet.weight} kg'),
+                  if (pet.color != null) InfoRow(label: 'Color', value: pet.color!),
+                  if (pet.microchip != null && pet.microchip!.isNotEmpty) InfoRow(label: 'Microchip', value: pet.microchip!),
+                  if (pet.notes != null) InfoRow(label: 'Notes', value: pet.notes!),
                 ],
               ),
             ),
@@ -193,19 +193,19 @@ class PetProfileScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  InfoRow(label: 'آخر زيارة', value: lastVisit != null ? '${lastVisit.date} — ${lastVisit.reason}' : 'لا يوجد'),
+                  InfoRow(label: 'Last Visit', value: lastVisit != null ? '${lastVisit.date} — ${lastVisit.reason}' : 'None'),
                   InfoRow(
-                    label: 'الموعد القادم',
+                    label: 'Next Appointment',
                     value: upcomingAppointments.isNotEmpty
                         ? '${upcomingAppointments.first.date} — ${upcomingAppointments.first.time}'
-                        : 'لا يوجد',
+                        : 'None',
                   ),
                 ],
               ),
             ),
           ),
-          const SectionTitle(title: 'سجل زيارات العيادة', icon: Icons.local_hospital),
-          if (visits.isEmpty) const Text('لا يوجد سجل زيارات'),
+          const SectionTitle(title: 'Clinic Visit History', icon: Icons.local_hospital),
+          if (visits.isEmpty) const Text('No visit history'),
           ...visits.map((v) => Card(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
@@ -214,16 +214,16 @@ class PetProfileScreen extends StatelessWidget {
                     children: [
                       Text(v.reason, style: const TextStyle(fontWeight: FontWeight.bold)),
                       Text(v.date, style: const TextStyle(color: AppColors.textLight, fontSize: 12)),
-                      if (v.description != null && v.description!.isNotEmpty) Text('الفحص/ملاحظات: ${v.description}'),
-                      if (v.diagnosis != null && v.diagnosis!.isNotEmpty) Text('التشخيص: ${v.diagnosis}'),
-                      if (v.treatment != null && v.treatment!.isNotEmpty) Text('العلاج: ${v.treatment}'),
-                      if (v.recommendations != null && v.recommendations!.isNotEmpty) Text('التوصيات: ${v.recommendations}'),
+                      if (v.description != null && v.description!.isNotEmpty) Text('Exam/Notes: ${v.description}'),
+                      if (v.diagnosis != null && v.diagnosis!.isNotEmpty) Text('Diagnosis: ${v.diagnosis}'),
+                      if (v.treatment != null && v.treatment!.isNotEmpty) Text('Treatment: ${v.treatment}'),
+                      if (v.recommendations != null && v.recommendations!.isNotEmpty) Text('Recommendations: ${v.recommendations}'),
                     ],
                   ),
                 ),
               )),
-          const SectionTitle(title: 'جميع المواعيد', icon: Icons.event_note),
-          if (appointments.isEmpty) const Text('لا يوجد مواعيد'),
+          const SectionTitle(title: 'All Appointments', icon: Icons.event_note),
+          if (appointments.isEmpty) const Text('No appointments'),
           ...appointments.map((a) => Card(
                 child: ListTile(
                   title: Text('${a.reason} — ${a.date} ${a.time}'),
@@ -242,8 +242,8 @@ class PetProfileScreen extends StatelessWidget {
                   ),
                 ),
               )),
-          const SectionTitle(title: 'سجل الفندقة والإجراءات الطبية', icon: Icons.hotel),
-          if (admissions.isEmpty) const Text('لا يوجد سجل فندقة أو إجراءات طبية'),
+          const SectionTitle(title: 'Hotel & Medical Procedures History', icon: Icons.hotel),
+          if (admissions.isEmpty) const Text('No hotel or medical procedure history'),
           ...admissions.map((a) {
             final notes = notesByAdmission[a.id] ?? [];
             final title = a.isProcedure ? AdmissionKind.procedure : (a.boardingType ?? '-');
@@ -261,15 +261,15 @@ class PetProfileScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Text('دخول: ${a.entryDate}'),
-                    Text('خروج متوقع: ${DateHelper.displayDate(a.expectedExitDate)}'),
-                    Text('خروج فعلي: ${a.actualExitDate ?? "لم يتم بعد"}'),
-                    if (a.notes != null && a.notes!.isNotEmpty) Text('ملاحظات الدخول: ${a.notes}'),
-                    _contractThumb(context, a.entryContractImage, 'عقد الإدخال'),
-                    _contractThumb(context, a.exitContractImage, 'عقد الاستلام'),
+                    Text('Check-in: ${a.entryDate}'),
+                    Text('Expected check-out: ${DateHelper.displayDate(a.expectedExitDate)}'),
+                    Text('Actual check-out: ${a.actualExitDate ?? "Not yet"}'),
+                    if (a.notes != null && a.notes!.isNotEmpty) Text('Check-in notes: ${a.notes}'),
+                    _contractThumb(context, a.entryContractImage, 'Check-in Contract'),
+                    _contractThumb(context, a.exitContractImage, 'Pickup Contract'),
                     if (notes.isNotEmpty) ...[
                       const Divider(),
-                      const Text('الملاحظات أثناء التواجد:', style: TextStyle(fontWeight: FontWeight.w600)),
+                      const Text('Notes During Stay:', style: TextStyle(fontWeight: FontWeight.w600)),
                       ...notes.map((n) => Padding(
                             padding: const EdgeInsets.only(top: 4),
                             child: Text('• ${n.text} (${n.dateTime})', style: const TextStyle(color: AppColors.textLight)),
@@ -280,15 +280,15 @@ class PetProfileScreen extends StatelessWidget {
               ),
             );
           }),
-          const SectionTitle(title: 'عداد الشاور', icon: Icons.content_cut),
+          const SectionTitle(title: 'Shower Counter', icon: Icons.content_cut),
           _ShowerCounterCard(petId: pet.id!),
-          const SectionTitle(title: 'الاستمارات الإلكترونية', icon: Icons.description_outlined),
+          const SectionTitle(title: 'Digital Forms', icon: Icons.description_outlined),
           FutureBuilder<List<Map<String, dynamic>>>(
             future: DBHelper.instance.getFormSubmissionsForPet(pet.id!),
             builder: (context, snapshot) {
               if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
               final submissions = snapshot.data!;
-              if (submissions.isEmpty) return const Text('لا يوجد استمارات محفوظة لهذه الأليفة بعد');
+              if (submissions.isEmpty) return const Text('No forms saved for this pet yet');
               return Column(
                 children: submissions.map((s) {
                   return Card(
@@ -314,8 +314,9 @@ class PetProfileScreen extends StatelessWidget {
   }
 }
 
-/// بطاقة عداد الشاور داخل ملف الأليفة - تعرض الرقم الحالي وتتيح تعديله يدوياً
-/// (مثلاً لأليفة لديها شاورات سابقة قبل تركيب التطبيق)
+/// Shower counter card within the pet profile - shows the current count and
+/// allows editing it manually (e.g. for a pet that had previous showers before
+/// the app was installed)
 class _ShowerCounterCard extends StatefulWidget {
   final int petId;
 
@@ -339,30 +340,30 @@ class _ShowerCounterCardState extends State<_ShowerCounterCard> {
     final newValue = await showDialog<int>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('تعديل عداد الشاور'),
+        title: const Text('Edit Shower Counter'),
         content: TextField(
           controller: controller,
           autofocus: true,
           keyboardType: TextInputType.number,
           decoration: const InputDecoration(
-            labelText: 'عدد الشاورات (0 - 3)',
-            helperText: 'مثال: أدخل 2 لو الأليفة لديها شاوران سابقان قبل تركيب التطبيق',
+            labelText: 'Number of Showers (0 - 3)',
+            helperText: 'Example: enter 2 if the pet had two previous showers before the app was installed',
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               final value = int.tryParse(controller.text.trim());
               if (value == null || value < 0) {
                 ScaffoldMessenger.of(ctx).showSnackBar(
-                  const SnackBar(content: Text('الرجاء إدخال رقم صحيح')),
+                  const SnackBar(content: Text('Please enter a valid number')),
                 );
                 return;
               }
               Navigator.pop(ctx, value > 3 ? 3 : value);
             },
-            child: const Text('حفظ'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -396,17 +397,17 @@ class _ShowerCounterCardState extends State<_ShowerCounterCard> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('الشاورات: $paidCount / 3', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text('Showers: $paidCount / 3', style: const TextStyle(fontWeight: FontWeight.bold)),
                   TextButton.icon(
                     onPressed: () => _edit(paidCount),
                     icon: const Icon(Icons.edit, size: 16),
-                    label: const Text('تعديل'),
+                    label: const Text('Edit'),
                   ),
                 ],
               ),
               if (freeEligible) ...[
                 const SizedBox(height: 4),
-                const Text('شاور مجاني مستحق', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold)),
+                const Text('Free shower earned', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold)),
               ],
             ],
           ),

@@ -14,7 +14,7 @@ import '../balance/balance_screen.dart';
 import '../forms/form_submission_view_screen.dart';
 import 'edit_client_screen.dart';
 
-/// تعرض بيانات العميل الكاملة: معلوماته + كل أليفاته + أزرار إجراءات سريعة
+/// Displays the client's full data: their info + all their pets + quick action buttons
 class ClientProfileScreen extends StatefulWidget {
   final Client client;
   final List<Map<String, dynamic>> petsWithDetails;
@@ -39,7 +39,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
 
   List<Pet> get _pets => _petsWithDetails.map((e) => e['pet'] as Pet).toList();
 
-  /// يعيد جلب بيانات العميل وأليفاته من قاعدة البيانات بعد أي تعديل/أرشفة
+  /// Re-fetches the client's and their pets' data from the database after any edit/archive
   Future<void> _refresh() async {
     setState(() => _refreshing = true);
     final profile = await DBHelper.instance.getClientFullProfile(_client.phone);
@@ -53,13 +53,13 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
     });
   }
 
-  /// يظهر مربع اختيار الأليفة إن كان للعميل أكثر من أليفة واحدة، وإلا يختار
-  /// الأليفة الوحيدة مباشرة، أو ينبّه إن لم يكن للعميل أي أليفة بعد.
+  /// Shows the pet-picker sheet if the client has more than one pet, otherwise
+  /// picks the single pet directly, or warns if the client has no pet yet.
   Future<Pet?> _pickPet(BuildContext context) async {
     final pets = _pets;
     if (pets.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يجب إضافة أليفة لهذا العميل أولاً')),
+        const SnackBar(content: Text('You must add a pet for this client first')),
       );
       return null;
     }
@@ -73,7 +73,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
           children: [
             const Padding(
               padding: EdgeInsets.all(16),
-              child: Text('اختر الأليفة', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              child: Text('Select Pet', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             ),
             ...pets.map(
               (p) => ListTile(
@@ -131,11 +131,11 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('أرشفة العميل'),
-        content: Text('سيختفي "${_client.name}" من القوائم الرئيسية، وتبقى كل بياناته وسجلاته محفوظة ويمكن استعادته من الأرشيف. متابعة؟'),
+        title: const Text('Archive Client'),
+        content: Text('"${_client.name}" will disappear from the main lists, while all their data and records remain saved and can be restored from the archive. Continue?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('أرشفة')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Archive')),
         ],
       ),
     );
@@ -143,7 +143,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
 
     await DBHelper.instance.archiveClient(_client.id!);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم أرشفة العميل')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Client archived')));
     Navigator.pop(context);
   }
 
@@ -151,11 +151,11 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('أرشفة الأليفة'),
-        content: Text('ستختفي "${pet.name}" من ملف العميل، وتبقى كل سجلاتها الطبية محفوظة ويمكن استعادتها من الأرشيف. متابعة؟'),
+        title: const Text('Archive Pet'),
+        content: Text('"${pet.name}" will disappear from the client profile, while all their medical records remain saved and can be restored from the archive. Continue?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('أرشفة')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Archive')),
         ],
       ),
     );
@@ -163,7 +163,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
 
     await DBHelper.instance.archivePet(pet.id!);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم أرشفة الأليفة')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pet archived')));
     _refresh();
   }
 
@@ -172,10 +172,10 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
     final client = _client;
     return Scaffold(
       appBar: AppBar(
-        title: Text('ملف العميل: ${client.name}'),
+        title: Text('Client Profile: ${client.name}'),
         actions: [
-          IconButton(icon: const Icon(Icons.edit), tooltip: 'تعديل بيانات العميل', onPressed: _editClient),
-          IconButton(icon: const Icon(Icons.archive_outlined), tooltip: 'أرشفة العميل', onPressed: _archiveClient),
+          IconButton(icon: const Icon(Icons.edit), tooltip: 'Edit client info', onPressed: _editClient),
+          IconButton(icon: const Icon(Icons.archive_outlined), tooltip: 'Archive client', onPressed: _archiveClient),
         ],
       ),
       body: RefreshIndicator(
@@ -190,15 +190,15 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    InfoRow(label: 'الاسم', value: client.name),
-                    InfoRow(label: 'الجوال', value: client.phone),
+                    InfoRow(label: 'Name', value: client.name),
+                    InfoRow(label: 'Phone', value: client.phone),
                     if (client.civilId != null && client.civilId!.isNotEmpty)
-                      InfoRow(label: 'السجل المدني', value: client.civilId!),
+                      InfoRow(label: 'Civil Registry', value: client.civilId!),
                     if (client.notes != null && client.notes!.isNotEmpty)
-                      InfoRow(label: 'ملاحظات', value: client.notes!),
+                      InfoRow(label: 'Notes', value: client.notes!),
                     if (client.balance != 0)
                       InfoRow(
-                        label: 'الرصيد',
+                        label: 'Balance',
                         value: client.balance == client.balance.roundToDouble()
                             ? client.balance.toStringAsFixed(0)
                             : client.balance.toStringAsFixed(2),
@@ -208,7 +208,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            const Text('إجراءات سريعة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary)),
+            const Text('Quick Actions', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary)),
             const SizedBox(height: 10),
             Wrap(
               spacing: 10,
@@ -216,7 +216,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
               children: [
                 _QuickActionButton(
                   icon: Icons.pets,
-                  label: 'إضافة أليفة',
+                  label: 'Add Pet',
                   onTap: () async {
                     await Navigator.push(
                       context,
@@ -227,22 +227,22 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                 ),
                 _QuickActionButton(
                   icon: Icons.local_hospital,
-                  label: 'إضافة زيارة عيادة',
+                  label: 'Add Clinic Visit',
                   onTap: () => _quickAddVisit(context),
                 ),
                 _QuickActionButton(
                   icon: Icons.event_available,
-                  label: 'إضافة موعد',
+                  label: 'Add Appointment',
                   onTap: () => _quickAddAppointment(context),
                 ),
                 _QuickActionButton(
                   icon: Icons.hotel,
-                  label: 'تسجيل دخول فندقة',
+                  label: 'Hotel Check-in',
                   onTap: () => _quickCheckin(context),
                 ),
                 _QuickActionButton(
                   icon: Icons.account_balance_wallet,
-                  label: 'تعديل الرصيد',
+                  label: 'Edit Balance',
                   onTap: () async {
                     await Navigator.push(
                       context,
@@ -254,9 +254,9 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
               ],
             ),
             const SizedBox(height: 20),
-            const Text('الأليفات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
+            const Text('Pets', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
             const SizedBox(height: 8),
-            if (_petsWithDetails.isEmpty) const Text('لا يوجد أليفات مسجلة لهذا العميل بعد'),
+            if (_petsWithDetails.isEmpty) const Text('No pets registered for this client yet'),
             ..._petsWithDetails.map((entry) {
               final Pet pet = entry['pet'];
               return Card(
@@ -274,7 +274,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                           if (v == 'archive') _archivePet(pet);
                         },
                         itemBuilder: (context) => const [
-                          PopupMenuItem(value: 'archive', child: Text('أرشفة الأليفة')),
+                          PopupMenuItem(value: 'archive', child: Text('Archive Pet')),
                         ],
                       ),
                     ],
@@ -299,14 +299,14 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
               );
             }),
             const SizedBox(height: 20),
-            const Text('الاستمارات الإلكترونية', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
+            const Text('Digital Forms', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
             const SizedBox(height: 8),
             FutureBuilder<List<Map<String, dynamic>>>(
               future: DBHelper.instance.getFormSubmissionsForClient(client.id!),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
                 final submissions = snapshot.data!;
-                if (submissions.isEmpty) return const Text('لا يوجد استمارات محفوظة لهذا العميل بعد');
+                if (submissions.isEmpty) return const Text('No forms saved for this client yet');
                 return Column(
                   children: submissions.map((s) {
                     return Card(

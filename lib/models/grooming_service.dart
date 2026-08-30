@@ -1,10 +1,10 @@
 class GroomingService {
   final int? id;
   final int petId;
-  final List<String> services; // من GroomingServiceType
+  final List<String> services; // From GroomingServiceType
   final bool countsAsShower;
   final bool isFreeShower;
-  final String status; // من GroomingStatus
+  final String status; // From GroomingStatus
   final String createdAt;
   final String? completedAt;
   final String? notes;
@@ -15,7 +15,7 @@ class GroomingService {
     required this.services,
     required this.countsAsShower,
     this.isFreeShower = false,
-    this.status = 'انتظار',
+    this.status = 'Pending',
     required this.createdAt,
     this.completedAt,
     this.notes,
@@ -43,7 +43,7 @@ class GroomingService {
       services: rawServices.isEmpty ? [] : rawServices.split('|'),
       countsAsShower: (map['counts_as_shower'] as int?) == 1,
       isFreeShower: (map['is_free_shower'] as int?) == 1,
-      status: (map['status'] as String?) ?? 'انتظار',
+      status: (map['status'] as String?) ?? 'Pending',
       createdAt: map['created_at'] as String,
       completedAt: map['completed_at'] as String?,
       notes: map['notes'] as String?,

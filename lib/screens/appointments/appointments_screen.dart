@@ -6,8 +6,8 @@ import '../../models/appointment.dart';
 import '../clinic/add_visit_screen.dart';
 import 'add_appointment_screen.dart';
 
-/// شاشة المواعيد: زر إضافة موعد + قائمة بجميع المواعيد القادمة
-/// مع إمكانية فتح أي موعد لتعديله أو حذفه.
+/// Appointments screen: an "add appointment" button + a list of all upcoming
+/// appointments, with the ability to open any appointment to edit or delete it.
 class AppointmentsScreen extends StatefulWidget {
   const AppointmentsScreen({super.key});
 
@@ -56,7 +56,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     await DBHelper.instance.updateAppointmentStatus(appointmentId, status);
     if (!mounted) return;
 
-    // عند "حضر" ننتقل تلقائياً لفتح زيارة عيادة جديدة مرتبطة بنفس الموعد والأليفة
+    // When status is "attended" we automatically navigate to open a new clinic visit linked to the same appointment and pet
     if (status == AppointmentStatus.attended) {
       final result = await Navigator.push(
         context,
@@ -81,11 +81,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المواعيد'),
+        title: const Text('Appointments'),
         actions: [
-          // زر إضافة موعد إضافي في الشريط العلوي لضمان وضوحه دائماً
+          // Extra "add appointment" button in the top bar to keep it always visible
           IconButton(
-            tooltip: 'إضافة موعد',
+            tooltip: 'Add Appointment',
             icon: const Icon(Icons.add_circle, size: 28),
             onPressed: _goToAddAppointment,
           ),
@@ -94,7 +94,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _goToAddAppointment,
         icon: const Icon(Icons.add),
-        label: const Text('إضافة موعد'),
+        label: const Text('Add Appointment'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -111,12 +111,12 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                 children: [
                   Icon(Icons.event_busy, size: 56, color: Colors.grey.shade400),
                   const SizedBox(height: 12),
-                  const Text('لا توجد مواعيد قادمة'),
+                  const Text('No upcoming appointments'),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: _goToAddAppointment,
                     icon: const Icon(Icons.add),
-                    label: const Text('إضافة موعد جديد'),
+                    label: const Text('Add New Appointment'),
                   ),
                 ],
               ),
@@ -134,7 +134,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                       color: AppColors.primary, size: 32),
                   title: Text('${a['pet_name']} — ${a['reason'] ?? ''}'),
                   subtitle: Text(
-                    'العميل: ${a['client_name']} (${a['client_phone']})\n${a['date']} — ${a['time']}',
+                    'Client: ${a['client_name']} (${a['client_phone']})\n${a['date']} — ${a['time']}',
                   ),
                   isThreeLine: true,
                   trailing: PopupMenuButton<String>(

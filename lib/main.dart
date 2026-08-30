@@ -14,12 +14,12 @@ class HeroPetApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'hero pet',
+      title: 'Hero Pet',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
-      // دعم اللغة العربية واتجاه RTL في كل التطبيق (بما في ذلك DatePicker/TimePicker)
-      locale: const Locale('ar'),
-      supportedLocales: const [Locale('ar'), Locale('en')],
+      // English language and LTR direction support throughout the app (including DatePicker/TimePicker)
+      locale: const Locale('en'),
+      supportedLocales: const [Locale('en')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -27,7 +27,7 @@ class HeroPetApp extends StatelessWidget {
       ],
       builder: (context, child) {
         return Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: TextDirection.ltr,
           child: child!,
         );
       },

@@ -12,12 +12,13 @@ import '../../utils/send_to_client_prompt.dart';
 import '../forms/fill_form_screen.dart';
 import '../home_screen.dart';
 
-/// شاشة تسجيل الدخول الموحّدة: تُستخدم لأي من الحالات الثلاث
-/// (فندقة عادية / فندقة علاجية / إجراء طبي) بنفس الحقول تماماً كما هو مطلوب.
+/// Unified check-in screen: used for any of the three cases
+/// (regular boarding / treatment boarding / medical procedure) with exactly the same fields, as required.
 ///
-/// إذا كانت هناك استمارة إلكترونية نشطة لنوع الحالة المختار، تحل محل صورة
-/// عقد الإدخال الورقي: يجب على العميل تعبئتها والتوقيع عليها وتصوير الفاتورة
-/// أولاً، ثم يتم تسجيل الدخول فعلياً بعد ذلك مباشرة.
+/// If there is an active electronic form for the selected case type, it
+/// replaces the paper check-in contract photo: the client must fill it out,
+/// sign it, and photograph the invoice first, then the actual check-in
+/// happens immediately after.
 class AddAdmissionScreen extends StatefulWidget {
   final int petId;
   final String petName;
@@ -53,7 +54,7 @@ class _AddAdmissionScreenState extends State<AddAdmissionScreen> {
     _loadTemplate();
   }
 
-  /// يحوّل نوع الحالة المختار في الشاشة إلى مفتاح نوع خدمة الاستمارة المطابق
+  /// Converts the case type selected on the screen into the matching form service type key
   String _serviceTypeForKind(String kind) {
     if (kind == AdmissionKind.procedure) return FormServiceType.checkinProcedure;
     if (kind == AdmissionKind.hotelTreatment) return FormServiceType.checkinHotelTreatment;
@@ -66,7 +67,7 @@ class _AddAdmissionScreenState extends State<AddAdmissionScreen> {
     if (!mounted) return;
     setState(() {
       _activeTemplate = template;
-      _formSubmissionId = null; // تغيّر نوع الحالة يعني إعادة تعبئة الاستمارة المطابقة
+      _formSubmissionId = null; // Changing the case type means the matching form must be filled out again
       _loadingTemplate = false;
     });
   }
@@ -105,12 +106,12 @@ class _AddAdmissionScreenState extends State<AddAdmissionScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('التقاط صورة عقد الإدخال بالكاميرا'),
+              title: const Text('Take a photo of the check-in contract with the camera'),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('اختيار من المعرض'),
+              title: const Text('Choose from Gallery'),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
           ],
@@ -144,13 +145,13 @@ class _AddAdmissionScreenState extends State<AddAdmissionScreen> {
     if (usingForm) {
       if (_formSubmissionId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('يجب تعبئة الاستمارة الإلكترونية والتوقيع عليها أولاً')),
+          const SnackBar(content: Text('The electronic form must be filled out and signed first')),
         );
         return;
       }
     } else if (_contractImagePath == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('صورة عقد الإدخال إلزامية ولا يمكن الحفظ بدونها')),
+        const SnackBar(content: Text('A check-in contract photo is required and cannot be skipped')),
       );
       return;
     }
@@ -162,8 +163,8 @@ class _AddAdmissionScreenState extends State<AddAdmissionScreen> {
     final admission = Admission(
       petId: widget.petId,
       type: isProcedure ? AdmissionType.procedure : AdmissionType.hotel,
-      boardingType: isProcedure ? null : _kind, // فندقة عادية / فندقة علاجية
-      procedureName: isProcedure ? 'إجراء طبي' : null,
+      boardingType: isProcedure ? null : _kind, // Regular boarding / treatment boarding
+      procedureName: isProcedure ? 'Medical Procedure' : null,
       entryDate:
           '${DateHelper.formatDate(_entryDate)} ${DateHelper.nowDateTime().split(' ').last}',
       expectedExitDate: _expectedExitDate != null ? DateHelper.formatDate(_expectedExitDate!) : null,
@@ -183,10 +184,10 @@ class _AddAdmissionScreenState extends State<AddAdmissionScreen> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تم تسجيل دخول "${widget.petName}" — $_kind')),
+      SnackBar(content: Text('"${widget.petName}" checked in — $_kind')),
     );
 
-    // نعرض للموظف مباشرة خانة "إرسال للعميل" (لا تُرسل تلقائياً)
+    // We show the staff member the "send to client" option directly (it is not sent automatically)
     final pet = await DBHelper.instance.getPetById(widget.petId);
     final client = pet != null ? await DBHelper.instance.getClientById(pet.clientId) : null;
     if (mounted && client != null) {
@@ -209,12 +210,12 @@ class _AddAdmissionScreenState extends State<AddAdmissionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('تسجيل دخول — ${widget.petName}')),
+      appBar: AppBar(title: Text('Check-in — ${widget.petName}')),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: ListView(
           children: [
-            const Text('اختر نوع الحالة', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const Text('Select Case Type', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             ...AdmissionKind.all.map(
               (k) => RadioListTile<String>(
                 title: Text(k),
@@ -227,7 +228,7 @@ class _AddAdmissionScreenState extends State<AddAdmissionScreen> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.calendar_today),
-              title: const Text('تاريخ الدخول'),
+              title: const Text('Entry Date'),
               subtitle: Text(DateHelper.formatDate(_entryDate)),
               trailing: const Icon(Icons.edit),
               onTap: _pickEntryDate,
@@ -235,15 +236,15 @@ class _AddAdmissionScreenState extends State<AddAdmissionScreen> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.event),
-              title: const Text('تاريخ الخروج المتوقع'),
-              subtitle: Text(_expectedExitDate != null ? DateHelper.formatDate(_expectedExitDate!) : 'اختر تاريخاً'),
+              title: const Text('Expected Exit Date'),
+              subtitle: Text(_expectedExitDate != null ? DateHelper.formatDate(_expectedExitDate!) : 'Select a date'),
               trailing: const Icon(Icons.edit),
               onTap: _pickExpectedExitDate,
             ),
             const Divider(),
             TextField(
               controller: _notesController,
-              decoration: const InputDecoration(labelText: 'ملاحظات', prefixIcon: Icon(Icons.notes)),
+              decoration: const InputDecoration(labelText: 'Notes', prefixIcon: Icon(Icons.notes)),
               maxLines: 3,
             ),
             const SizedBox(height: 16),
@@ -258,7 +259,7 @@ class _AddAdmissionScreenState extends State<AddAdmissionScreen> {
                     color: _formSubmissionId != null ? AppColors.success : AppColors.primary,
                   ),
                   title: Text(_activeTemplate!['name']),
-                  subtitle: Text(_formSubmissionId != null ? 'تم اعتماد الاستمارة ✓' : 'الاستمارة الإلكترونية *'),
+                  subtitle: Text(_formSubmissionId != null ? 'Form approved ✓' : 'Electronic Form *'),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                   onTap: _openForm,
                 ),
@@ -266,7 +267,7 @@ class _AddAdmissionScreenState extends State<AddAdmissionScreen> {
             ] else ...[
               OutlinedButton.icon(
                 icon: const Icon(Icons.camera_alt),
-                label: Text(_contractImagePath == null ? 'التقاط صورة عقد الإدخال *' : 'تم اختيار صورة العقد ✓'),
+                label: Text(_contractImagePath == null ? 'Take Check-in Contract Photo *' : 'Contract photo selected ✓'),
                 onPressed: _pickContractImage,
               ),
               if (_contractImagePath != null) ...[
@@ -282,7 +283,7 @@ class _AddAdmissionScreenState extends State<AddAdmissionScreen> {
               icon: _saving
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                   : const Icon(Icons.save),
-              label: Text(_saving ? 'جاري الحفظ...' : 'تسجيل الدخول'),
+              label: Text(_saving ? 'Saving...' : 'Check In'),
               onPressed: _saving ? null : _save,
             ),
           ],

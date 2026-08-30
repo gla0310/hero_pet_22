@@ -3,12 +3,12 @@ import '../core/constants.dart';
 class Admission {
   final int? id;
   final int petId;
-  final String type; // AdmissionType.hotel أو AdmissionType.procedure
-  final String? boardingType; // BoardingType (فقط عند type = hotel)
-  final String? procedureName; // فقط عند type = procedure
+  final String type; // AdmissionType.hotel or AdmissionType.procedure
+  final String? boardingType; // BoardingType (only when type = hotel)
+  final String? procedureName; // Only when type = procedure
   final String entryDate; // yyyy-MM-dd HH:mm
-  final String? expectedExitDate; // فقط للفندقة
-  final String? actualExitDate; // تاريخ ووقت الخروج/التسليم الفعلي
+  final String? expectedExitDate; // Boarding only
+  final String? actualExitDate; // Actual check-out/delivery date and time
   final String? entryContractImage;
   final String? exitContractImage;
   final String status; // PetStatus

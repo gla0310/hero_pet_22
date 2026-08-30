@@ -6,7 +6,7 @@ import '../../database/db_helper.dart';
 import '../../models/pet.dart';
 import '../../utils/image_picker_helper.dart';
 
-/// شاشة تعديل بيانات أليفة موجودة مسبقاً (كل الحقول بدون استثناء)
+/// Screen for editing an existing pet's information (all fields, no exceptions)
 class EditPetScreen extends StatefulWidget {
   final Pet pet;
 
@@ -67,12 +67,12 @@ class _EditPetScreenState extends State<EditPetScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('التقاط صورة بالكاميرا'),
+              title: const Text('Take a Photo'),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('اختيار من المعرض'),
+              title: const Text('Choose from Gallery'),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
           ],
@@ -105,14 +105,14 @@ class _EditPetScreenState extends State<EditPetScreen> {
 
     if (!mounted) return;
     setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ التعديلات')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Changes saved')));
     Navigator.pop(context, updated);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('تعديل بيانات ${widget.pet.name}')),
+      appBar: AppBar(title: Text('Edit ${widget.pet.name}\'s Information')),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -135,36 +135,36 @@ class _EditPetScreenState extends State<EditPetScreen> {
               const SizedBox(height: 20),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'اسم الأليفة *', prefixIcon: Icon(Icons.badge)),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'اسم الأليفة إجباري' : null,
+                decoration: const InputDecoration(labelText: 'Pet Name *', prefixIcon: Icon(Icons.badge)),
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Pet name is required' : null,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: _type,
-                decoration: const InputDecoration(labelText: 'النوع', prefixIcon: Icon(Icons.category)),
+                decoration: const InputDecoration(labelText: 'Type', prefixIcon: Icon(Icons.category)),
                 items: PetTypes.common.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
                 onChanged: (v) => setState(() => _type = v ?? _type),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _breedController,
-                decoration: const InputDecoration(labelText: 'السلالة', prefixIcon: Icon(Icons.pets)),
+                decoration: const InputDecoration(labelText: 'Breed', prefixIcon: Icon(Icons.pets)),
               ),
               const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
                     child: RadioListTile<String>(
-                      title: const Text('ذكر'),
-                      value: 'ذكر',
+                      title: const Text('Male'),
+                      value: 'Male',
                       groupValue: _gender,
                       onChanged: (v) => setState(() => _gender = v),
                     ),
                   ),
                   Expanded(
                     child: RadioListTile<String>(
-                      title: const Text('أنثى'),
-                      value: 'أنثى',
+                      title: const Text('Female'),
+                      value: 'Female',
                       groupValue: _gender,
                       onChanged: (v) => setState(() => _gender = v),
                     ),
@@ -174,31 +174,31 @@ class _EditPetScreenState extends State<EditPetScreen> {
               TextFormField(
                 controller: _birthDateController,
                 decoration: const InputDecoration(
-                  labelText: 'تاريخ الميلاد أو العمر',
+                  labelText: 'Birth Date or Age',
                   prefixIcon: Icon(Icons.cake),
-                  hintText: 'مثال: 2023-05-01 أو "سنتين"',
+                  hintText: 'Example: 2023-05-01 or "2 years"',
                 ),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _weightController,
-                decoration: const InputDecoration(labelText: 'الوزن (كجم)', prefixIcon: Icon(Icons.monitor_weight)),
+                decoration: const InputDecoration(labelText: 'Weight (kg)', prefixIcon: Icon(Icons.monitor_weight)),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _colorController,
-                decoration: const InputDecoration(labelText: 'اللون', prefixIcon: Icon(Icons.palette)),
+                decoration: const InputDecoration(labelText: 'Color', prefixIcon: Icon(Icons.palette)),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _microchipController,
-                decoration: const InputDecoration(labelText: 'رقم المايكروشيب', prefixIcon: Icon(Icons.memory)),
+                decoration: const InputDecoration(labelText: 'Microchip Number', prefixIcon: Icon(Icons.memory)),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _notesController,
-                decoration: const InputDecoration(labelText: 'ملاحظات', prefixIcon: Icon(Icons.notes)),
+                decoration: const InputDecoration(labelText: 'Notes', prefixIcon: Icon(Icons.notes)),
                 maxLines: 3,
               ),
               const SizedBox(height: 30),
@@ -207,7 +207,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                 icon: _saving
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                     : const Icon(Icons.save),
-                label: Text(_saving ? 'جاري الحفظ...' : 'حفظ التعديلات'),
+                label: Text(_saving ? 'Saving...' : 'Save Changes'),
               ),
             ],
           ),

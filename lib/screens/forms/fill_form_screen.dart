@@ -14,20 +14,20 @@ import '../../utils/form_pdf_generator.dart';
 import '../../utils/image_picker_helper.dart';
 import '../../widgets/signature_pad.dart';
 
-/// شاشة تعبئة الاستمارة الإلكترونية والتوقيع عليها - يستخدمها العميل مباشرة
-/// على الآيباد. تُفتح تلقائياً أو عند الضغط على "الاستمارة الإلكترونية"
-/// حسب نوع الخدمة (دخول/خروج فندقة أو إجراء طبي).
+/// Screen for filling out and signing the electronic form - used directly by
+/// the client on the iPad. Opens automatically or when tapping "Electronic Form"
+/// depending on the service type (boarding check-in/check-out or medical procedure).
 class FillFormScreen extends StatefulWidget {
   final int templateId;
   final int petId;
   final int? admissionId;
   final int? visitId;
 
-  /// عند تسجيل الدخول: صورة الفاتورة إلزامية لإكمال الاستمارة.
-  /// عند تسجيل الخروج: اختيارية.
+  /// At check-in: the invoice photo is required to complete the form.
+  /// At check-out: optional.
   final bool invoiceRequired;
 
-  /// ملاحظات الفندقة أثناء التواجد (تُعرض عند الخروج فقط إن وُجدت)
+  /// Boarding notes taken during the stay (shown at check-out only, if present)
   final List<AdmissionNote>? admissionNotes;
 
   const FillFormScreen({
@@ -53,7 +53,7 @@ class _FillFormScreenState extends State<FillFormScreen> {
 
   bool _termsAccepted = false;
 
-  // إجابات الحقول الديناميكية: field id -> controller (نص) أو bool (Checkbox)
+  // Answers for dynamic fields: field id -> controller (text) or bool (Checkbox)
   final Map<int, TextEditingController> _textAnswers = {};
   final Map<int, bool> _checkboxAnswers = {};
 
@@ -116,7 +116,7 @@ class _FillFormScreenState extends State<FillFormScreen> {
 
     if (!_termsAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يجب الموافقة على الشروط والأحكام')),
+        const SnackBar(content: Text('You must agree to the terms and conditions')),
       );
       return;
     }
@@ -127,14 +127,14 @@ class _FillFormScreenState extends State<FillFormScreen> {
       if (f['field_type'] == 'checkbox') {
         if (_checkboxAnswers[id] != true) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('الحقل "${f['label']}" إلزامي')),
+            SnackBar(content: Text('The field "${f['label']}" is required')),
           );
           return;
         }
       } else {
         if ((_textAnswers[id]?.text.trim() ?? '').isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('الحقل "${f['label']}" إلزامي')),
+            SnackBar(content: Text('The field "${f['label']}" is required')),
           );
           return;
         }
@@ -142,13 +142,13 @@ class _FillFormScreenState extends State<FillFormScreen> {
     }
     if (_signatureEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('التوقيع إلزامي لاعتماد الاستمارة')),
+        const SnackBar(content: Text('A signature is required to submit the form')),
       );
       return;
     }
     if (widget.invoiceRequired && _invoiceImagePath == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('صورة الفاتورة إلزامية لإكمال الاستمارة')),
+        const SnackBar(content: Text('An invoice photo is required to complete the form')),
       );
       return;
     }
@@ -156,26 +156,26 @@ class _FillFormScreenState extends State<FillFormScreen> {
     setState(() => _submitting = true);
     final stopwatch = Stopwatch()..start();
 
-    // حفظ صورة التوقيع
+    // Save the signature image
     final signatureBytes = await _signaturePadStateKey.currentState!.exportPng();
     if (signatureBytes == null) {
       setState(() => _submitting = false);
       return;
     }
-    debugPrint('⏱ [استمارة] تصدير التوقيع: ${stopwatch.elapsedMilliseconds}ms');
+    debugPrint('⏱ [Form] Signature export: ${stopwatch.elapsedMilliseconds}ms');
     stopwatch.reset();
 
     final signaturePath = await ImagePickerHelper.saveBytesAsImage(signatureBytes, prefix: 'signature');
-    debugPrint('⏱ [استمارة] حفظ ملف التوقيع: ${stopwatch.elapsedMilliseconds}ms');
+    debugPrint('⏱ [Form] Signature file save: ${stopwatch.elapsedMilliseconds}ms');
     stopwatch.reset();
 
-    // بناء قائمة الإجابات
+    // Build the list of answers
     final answers = <Map<String, String>>[];
     for (final f in _fields) {
       final id = f['id'] as int;
       final label = f['label'] as String;
       if (f['field_type'] == 'checkbox') {
-        answers.add({'label': label, 'value': (_checkboxAnswers[id] == true) ? 'نعم' : 'لا'});
+        answers.add({'label': label, 'value': (_checkboxAnswers[id] == true) ? 'Yes' : 'No'});
       } else {
         answers.add({'label': label, 'value': _textAnswers[id]?.text.trim() ?? ''});
       }
@@ -197,7 +197,7 @@ class _FillFormScreenState extends State<FillFormScreen> {
       signatureBytes: signatureBytes,
       submittedAt: submittedAt,
     );
-    debugPrint('⏱ [استمارة] إنشاء PDF: ${stopwatch.elapsedMilliseconds}ms');
+    debugPrint('⏱ [Form] PDF generation: ${stopwatch.elapsedMilliseconds}ms');
     stopwatch.reset();
 
     final submissionId = await DBHelper.instance.insertFormSubmission(
@@ -217,11 +217,11 @@ class _FillFormScreenState extends State<FillFormScreen> {
     if (_invoiceImagePath != null) {
       await DBHelper.instance.addFormAttachment(submissionId, _invoiceImagePath!);
     }
-    debugPrint('⏱ [استمارة] حفظ قاعدة البيانات: ${stopwatch.elapsedMilliseconds}ms');
+    debugPrint('⏱ [Form] Database save: ${stopwatch.elapsedMilliseconds}ms');
 
     if (!mounted) return;
     setState(() => _submitting = false);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم اعتماد الاستمارة وحفظها')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Form submitted and saved')));
     Navigator.pop(context, submissionId);
   }
 
@@ -232,8 +232,8 @@ class _FillFormScreenState extends State<FillFormScreen> {
     }
     if (_template == null || _client == null || _pet == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('خطأ')),
-        body: const Center(child: Text('تعذّر تحميل بيانات الاستمارة')),
+        appBar: AppBar(title: const Text('Error')),
+        body: const Center(child: Text('Failed to load form data')),
       );
     }
 
@@ -254,18 +254,18 @@ class _FillFormScreenState extends State<FillFormScreen> {
                 children: [
                   Text(serviceLabel, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
                   const Divider(),
-                  _infoRow('اسم العميل', _client!.name),
-                  _infoRow('رقم الجوال', _client!.phone),
-                  _infoRow('اسم الأليف', _pet!.name),
-                  _infoRow('رقم ملف الأليف', '#${_pet!.id}'),
-                  _infoRow('التاريخ والوقت', DateHelper.nowDateTime()),
+                  _infoRow('Client Name', _client!.name),
+                  _infoRow('Phone Number', _client!.phone),
+                  _infoRow('Pet Name', _pet!.name),
+                  _infoRow('Pet File Number', '#${_pet!.id}'),
+                  _infoRow('Date and Time', DateHelper.nowDateTime()),
                 ],
               ),
             ),
           ),
           if (notes.isNotEmpty) ...[
             const SizedBox(height: 16),
-            const Text('ملاحظات أثناء التواجد في الفندقة', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const Text('Notes During Boarding Stay', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 8),
             Container(
               width: double.infinity,
@@ -284,7 +284,7 @@ class _FillFormScreenState extends State<FillFormScreen> {
           ],
           if (termsText != null && termsText.isNotEmpty) ...[
             const Divider(height: 30),
-            const Text('الشروط والأحكام', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const Text('Terms and Conditions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 8),
             Container(
               width: double.infinity,
@@ -297,14 +297,14 @@ class _FillFormScreenState extends State<FillFormScreen> {
             ),
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('أوافق على الشروط والأحكام *'),
+              title: const Text('I agree to the terms and conditions *'),
               value: _termsAccepted,
               onChanged: (v) => setState(() => _termsAccepted = v ?? false),
             ),
           ],
           if (_fields.isNotEmpty) ...[
             const Divider(height: 30),
-            const Text('بيانات إضافية', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const Text('Additional Information', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 8),
             ..._fields.map((f) {
               final id = f['id'] as int;
@@ -329,7 +329,7 @@ class _FillFormScreenState extends State<FillFormScreen> {
             }),
           ],
           const Divider(height: 30),
-          const Text('التوقيع الإلكتروني *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const Text('Electronic Signature *', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 8),
           Container(
             height: 180,
@@ -347,12 +347,12 @@ class _FillFormScreenState extends State<FillFormScreen> {
             child: TextButton.icon(
               onPressed: () => setState(() => _signaturePadStateKey.currentState?.clear()),
               icon: const Icon(Icons.refresh),
-              label: const Text('مسح التوقيع'),
+              label: const Text('Clear Signature'),
             ),
           ),
           const SizedBox(height: 10),
           Text(
-            widget.invoiceRequired ? 'صورة الفاتورة *' : 'صورة الفاتورة (اختياري)',
+            widget.invoiceRequired ? 'Invoice Photo *' : 'Invoice Photo (optional)',
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 8),
@@ -370,7 +370,7 @@ class _FillFormScreenState extends State<FillFormScreen> {
             ),
           OutlinedButton.icon(
             icon: const Icon(Icons.camera_alt),
-            label: Text(_invoiceImagePath == null ? 'تصوير الفاتورة بالكاميرا' : 'إعادة التصوير'),
+            label: Text(_invoiceImagePath == null ? 'Take Invoice Photo' : 'Retake Photo'),
             onPressed: _captureInvoice,
           ),
           const SizedBox(height: 20),
@@ -380,7 +380,7 @@ class _FillFormScreenState extends State<FillFormScreen> {
               icon: _submitting
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                   : const Icon(Icons.check_circle_outline),
-              label: Text(_submitting ? 'جاري الاعتماد...' : 'اعتماد'),
+              label: Text(_submitting ? 'Submitting...' : 'Submit'),
               onPressed: _submitting ? null : _submit,
             ),
           ),

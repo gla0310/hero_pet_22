@@ -9,11 +9,11 @@ class DateHelper {
 
   static String formatDateTime(DateTime date) => DateFormat('yyyy-MM-dd HH:mm').format(date);
 
-  /// اسم اليوم بالعربي من تاريخ بصيغة yyyy-MM-dd
+  /// Weekday name from a date in yyyy-MM-dd format
   static String arabicWeekday(String isoDate) {
     try {
       final date = DateTime.parse(isoDate.split(' ').first);
-      const names = ['الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد'];
+      const names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
       return names[date.weekday - 1];
     } catch (_) {
       return '';
@@ -32,7 +32,7 @@ class DateHelper {
     }
   }
 
-  /// عدد أيام التأخير عن تاريخ الخروج المتوقع (0 أو أقل يعني غير متأخر)
+  /// Number of days overdue past the expected exit date (0 or less means not late)
   static int daysLate(String? expectedExitDate) {
     if (expectedExitDate == null || expectedExitDate.isEmpty) return 0;
     try {
@@ -47,7 +47,7 @@ class DateHelper {
   }
 }
 
-/// كلاس بسيط لتجنب الاعتماد المباشر على TimeOfDay في طبقة utils
+/// A simple class to avoid depending directly on TimeOfDay in the utils layer
 class TimeOfDayLike {
   final int hour;
   final int minute;

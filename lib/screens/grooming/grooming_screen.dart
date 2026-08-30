@@ -16,12 +16,13 @@ import '../pet/add_pet_screen.dart';
 
 enum _Step { client, pet, services }
 
-/// شاشة قسم الشاور والحلاقة: تفتح مباشرة على قائمة كل خدمات اليوم (مع شريط
-/// بحث فوقها لإضافة عميل/أليفة جديدة إن جاء أحد)، ثم اختيار الأليفة (بصورتها)
-/// ← اختيار الخدمات، مع عرض عداد الشاور والشاور المجاني المستحق إن وُجد.
+/// Grooming & bathing department screen: opens directly on a list of all of
+/// today's services (with a search bar above it to add a new client/pet if
+/// one arrives), then selecting the pet (by its photo) → selecting services,
+/// showing the bath counter and any free bath owed, if applicable.
 ///
-/// إذا مُرِّر [initialPetId] (مثلاً من شاشة "تم حفظ الأليفة" مباشرة بعد
-/// إضافتها)، تُفتح الشاشة مباشرة على خطوة اختيار الخدمات لهذه الأليفة.
+/// If [initialPetId] is passed (e.g. from the "pet saved" screen right after
+/// adding it), the screen opens directly on the service-selection step for that pet.
 class GroomingScreen extends StatefulWidget {
   final int? initialPetId;
 
@@ -35,7 +36,7 @@ class _GroomingScreenState extends State<GroomingScreen> {
   _Step _step = _Step.client;
   bool _loadingInitialPet = false;
 
-  // خطوة 1: العميل + قائمة خدمات اليوم
+  // Step 1: Client + today's services list
   final _searchController = TextEditingController();
   List<Client> _searchResults = [];
   bool _searching = false;
@@ -43,11 +44,11 @@ class _GroomingScreenState extends State<GroomingScreen> {
   Client? _selectedClient;
   late Future<List<Map<String, dynamic>>> _todayServicesFuture;
 
-  // خطوة 2: الأليفة
+  // Step 2: Pet
   List<Pet> _pets = [];
   Pet? _selectedPet;
 
-  // خطوة 3: الخدمات
+  // Step 3: Services
   final Set<String> _selectedServices = {};
   Map<String, dynamic>? _showerProgress;
   bool _useFreeShower = false;
@@ -145,39 +146,39 @@ class _GroomingScreenState extends State<GroomingScreen> {
     setState(() => _pets = pets);
   }
 
-  /// عند اختيار أليفة بدون صورة، يجب إضافة صورة أولاً قبل المتابعة للخدمات
-  /// تعديل يدوي مباشر لعداد الشاور - مفيد لأليفة لديها شاورات سابقة قبل
-  /// تركيب التطبيق، أو لتصحيح العداد يدوياً في أي وقت
+  /// When a pet without a photo is selected, a photo must be added before continuing to services
+  /// Direct manual edit of the bath counter - useful for a pet that had baths
+  /// before the app was installed, or to correct the counter manually at any time
   Future<void> _editShowerCount() async {
     final controller = TextEditingController(text: (_showerProgress?['paidCount'] ?? 0).toString());
 
     final newValue = await showDialog<int>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('تعديل عداد الشاور'),
+        title: const Text('Edit Bath Counter'),
         content: TextField(
           controller: controller,
           autofocus: true,
           keyboardType: TextInputType.number,
           decoration: const InputDecoration(
-            labelText: 'عدد الشاورات (0 - 3)',
-            helperText: 'مثال: أدخل 2 لو الأليفة لديها شاوران سابقان قبل تركيب التطبيق',
+            labelText: 'Number of baths (0 - 3)',
+            helperText: 'Example: enter 2 if the pet had two baths before the app was installed',
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               final value = int.tryParse(controller.text.trim());
               if (value == null || value < 0) {
                 ScaffoldMessenger.of(ctx).showSnackBar(
-                  const SnackBar(content: Text('الرجاء إدخال رقم صحيح')),
+                  const SnackBar(content: Text('Please enter a valid number')),
                 );
                 return;
               }
               Navigator.pop(ctx, value > 3 ? 3 : value);
             },
-            child: const Text('حفظ'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -190,13 +191,13 @@ class _GroomingScreenState extends State<GroomingScreen> {
     setState(() {
       _showerProgress = {'paidCount': newValue, 'freeEligible': newValue >= 3};
     });
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تحديث عداد الشاور')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bath counter updated')));
   }
 
   Future<void> _selectPet(Pet pet) async {
     if (pet.imagePath == null || pet.imagePath!.isEmpty) {
       final updatedPet = await _requirePhotoThenContinue(pet);
-      if (updatedPet == null) return; // لم تتم إضافة صورة - لا نكمل
+      if (updatedPet == null) return; // No photo was added - do not continue
       pet = updatedPet;
     }
 
@@ -216,11 +217,11 @@ class _GroomingScreenState extends State<GroomingScreen> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        title: const Text('صورة الأليفة مطلوبة'),
-        content: const Text('هذا الأليف لا توجد له صورة، يرجى إضافة صورة قبل تسجيل الخدمة.'),
+        title: const Text('Pet Photo Required'),
+        content: const Text('This pet does not have a photo. Please add one before registering the service.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('إضافة صورة الآن')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Add Photo Now')),
         ],
       ),
     );
@@ -233,12 +234,12 @@ class _GroomingScreenState extends State<GroomingScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('التقاط صورة بالكاميرا'),
+              title: const Text('Take Photo with Camera'),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('اختيار من المعرض'),
+              title: const Text('Choose from Gallery'),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
           ],
@@ -254,7 +255,7 @@ class _GroomingScreenState extends State<GroomingScreen> {
     await DBHelper.instance.updatePet(updated);
     if (!mounted) return null;
 
-    // نحدّث القائمة المحلية لتعكس الصورة الجديدة أيضاً
+    // Update the local list to reflect the new photo as well
     setState(() {
       _pets = _pets.map((p) => p.id == pet.id ? updated : p).toList();
     });
@@ -264,7 +265,7 @@ class _GroomingScreenState extends State<GroomingScreen> {
   Future<void> _submit() async {
     if (_selectedServices.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء اختيار خدمة واحدة على الأقل')),
+        const SnackBar(content: Text('Please select at least one service')),
       );
       return;
     }
@@ -283,8 +284,8 @@ class _GroomingScreenState extends State<GroomingScreen> {
     );
     await DBHelper.instance.insertGroomingService(service);
 
-    // تحديث عداد الشاور الفعلي: يصفّر عند استخدام المجاني، ويزيد بواحد عند
-    // أي شاور مدفوع جديد
+    // Update the actual bath counter: reset to zero when the free one is
+    // used, and increment by one for any new paid bath
     if (countsAsShower) {
       if (isFree) {
         await DBHelper.instance.resetPetShowerCount(_selectedPet!.id!);
@@ -295,9 +296,9 @@ class _GroomingScreenState extends State<GroomingScreen> {
 
     if (!mounted) return;
     setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تسجيل الخدمة بنجاح')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service registered successfully')));
 
-    // نعود لقائمة خدمات اليوم في نفس الشاشة (بداية جديدة) بدل الانتقال لشاشة أخرى
+    // Return to today's services list on the same screen (a fresh start) instead of navigating to another screen
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const GroomingScreen()),
@@ -336,11 +337,11 @@ class _GroomingScreenState extends State<GroomingScreen> {
   String get _title {
     switch (_step) {
       case _Step.client:
-        return 'الشاور والحلاقة';
+        return 'Grooming & Bathing';
       case _Step.pet:
-        return 'الشاور والحلاقة — اختر الأليفة';
+        return 'Grooming & Bathing — Select Pet';
       case _Step.services:
-        return 'الشاور والحلاقة — الخدمات';
+        return 'Grooming & Bathing — Services';
     }
   }
 
@@ -379,7 +380,7 @@ class _GroomingScreenState extends State<GroomingScreen> {
                 controller: _searchController,
                 textInputAction: TextInputAction.search,
                 decoration: const InputDecoration(
-                  labelText: 'ابحث برقم الجوال أو اسم العميل لإضافة خدمة',
+                  labelText: 'Search by phone number or client name to add a service',
                   prefixIcon: Icon(Icons.search),
                 ),
                 onChanged: (_) => setState(() {}),
@@ -400,11 +401,11 @@ class _GroomingScreenState extends State<GroomingScreen> {
         const SizedBox(height: 16),
         if (_searching) const Center(child: CircularProgressIndicator()),
         if (_searched && _searchResults.isEmpty) ...[
-          const Text('لا يوجد عملاء مطابقين لبحثك', style: TextStyle(color: Colors.red)),
+          const Text('No clients match your search', style: TextStyle(color: Colors.red)),
           const SizedBox(height: 10),
           OutlinedButton.icon(
             icon: const Icon(Icons.person_add_alt_1),
-            label: const Text('إضافة عميل جديد'),
+            label: const Text('Add New Client'),
             onPressed: _addNewClient,
           ),
           const SizedBox(height: 10),
@@ -437,7 +438,7 @@ class _GroomingScreenState extends State<GroomingScreen> {
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
         final items = snapshot.data!;
-        if (items.isEmpty) return const Center(child: Text('لا توجد خدمات مسجّلة اليوم'));
+        if (items.isEmpty) return const Center(child: Text('No services registered today'));
 
         return ListView.builder(
           itemCount: items.length,
@@ -467,12 +468,12 @@ class _GroomingScreenState extends State<GroomingScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(item['pet_name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                          Text('العميل: ${item['client_name']}'),
-                          Text('الخدمة: $services${isFree ? ' (مجاني)' : ''}'),
+                          Text('Client: ${item['client_name']}'),
+                          Text('Service: $services${isFree ? ' (Free)' : ''}'),
                           if (item['notes'] != null && (item['notes'] as String).isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.only(top: 2),
-                              child: Text('ملاحظات: ${item['notes']}', style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 13)),
+                              child: Text('Notes: ${item['notes']}', style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 13)),
                             ),
                           const SizedBox(height: 8),
                           PopupMenuButton<String>(
@@ -514,22 +515,22 @@ class _GroomingScreenState extends State<GroomingScreen> {
         TextButton.icon(
           onPressed: () => setState(() => _step = _Step.client),
           icon: const Icon(Icons.arrow_back),
-          label: const Text('رجوع'),
+          label: const Text('Back'),
         ),
-        Text('العميل: ${_selectedClient!.name} — ${_selectedClient!.phone}',
+        Text('Client: ${_selectedClient!.name} — ${_selectedClient!.phone}',
             style: const TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         Align(
           alignment: Alignment.centerRight,
           child: OutlinedButton.icon(
             icon: const Icon(Icons.pets),
-            label: const Text('إضافة أليفة جديدة'),
+            label: const Text('Add New Pet'),
             onPressed: _addNewPet,
           ),
         ),
         const SizedBox(height: 8),
         if (_pets.isEmpty)
-          const Expanded(child: Center(child: Text('لا يوجد أليفات مسجلة لهذا العميل')))
+          const Expanded(child: Center(child: Text('No pets registered for this client')))
         else
           Expanded(
             child: ListView(
@@ -544,7 +545,7 @@ class _GroomingScreenState extends State<GroomingScreen> {
                       child: !hasPhoto ? const Icon(Icons.pets, color: Colors.grey) : null,
                     ),
                     title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    subtitle: Text(hasPhoto ? p.type : '${p.type} — بدون صورة ⚠️'),
+                    subtitle: Text(hasPhoto ? p.type : '${p.type} — No photo ⚠️'),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                     onTap: () => _selectPet(p),
                   ),
@@ -567,7 +568,7 @@ class _GroomingScreenState extends State<GroomingScreen> {
         TextButton.icon(
           onPressed: () => setState(() => _step = _Step.pet),
           icon: const Icon(Icons.arrow_back),
-          label: const Text('رجوع لاختيار أليفة أخرى'),
+          label: const Text('Back to Select Another Pet'),
         ),
         Row(
           children: [
@@ -597,20 +598,20 @@ class _GroomingScreenState extends State<GroomingScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('الشاورات: $paidCount / 3', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text('Baths: $paidCount / 3', style: const TextStyle(fontWeight: FontWeight.bold)),
                   TextButton.icon(
                     onPressed: _editShowerCount,
                     icon: const Icon(Icons.edit, size: 16),
-                    label: const Text('تعديل'),
+                    label: const Text('Edit'),
                   ),
                 ],
               ),
               if (freeEligible) ...[
                 const SizedBox(height: 6),
-                const Text('شاور مجاني مستحق 🎉', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold)),
+                const Text('Free bath owed 🎉', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold)),
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('استخدام الشاور المجاني المستحق الآن'),
+                  title: const Text('Use the free bath owed now'),
                   value: _useFreeShower,
                   onChanged: (v) => setState(() => _useFreeShower = v ?? false),
                 ),
@@ -619,7 +620,7 @@ class _GroomingScreenState extends State<GroomingScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        const Text('اختر الخدمة (يمكن اختيار أكثر من صنف)', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('Select Service (more than one category can be chosen)', style: TextStyle(fontWeight: FontWeight.bold)),
         Expanded(
           child: ListView(
             children: [
@@ -642,7 +643,7 @@ class _GroomingScreenState extends State<GroomingScreen> {
               TextField(
                 controller: _notesController,
                 decoration: const InputDecoration(
-                  labelText: 'ملاحظات',
+                  labelText: 'Notes',
                   prefixIcon: Icon(Icons.notes),
                   border: OutlineInputBorder(),
                 ),
@@ -666,7 +667,7 @@ class _GroomingScreenState extends State<GroomingScreen> {
             icon: _saving
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                 : const Icon(Icons.check_circle_outline),
-            label: Text(_saving ? 'جاري الحفظ...' : 'تسجيل الخدمة'),
+            label: Text(_saving ? 'Saving...' : 'Register Service'),
             onPressed: _saving ? null : _submit,
           ),
         ),

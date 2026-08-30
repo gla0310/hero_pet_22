@@ -6,10 +6,10 @@ import '../../database/db_helper.dart';
 import '../../utils/whatsapp_helper.dart';
 import '../../utils/date_helper.dart';
 
-/// شاشة التذكيرات - مقسّمة لثلاثة أقسام:
-/// 1) المواعيد القادمة (متابعة / تطعيم / شاور / أخرى)
-/// 2) التسليمات اليوم (فندقة عادية/علاجية أو إجراء طبي مستحق تسليمه اليوم)
-/// 3) المتأخرون عن الخروج
+/// Reminders screen - divided into three sections:
+/// 1) Upcoming appointments (follow-up / vaccination / grooming / other)
+/// 2) Today's checkouts (standard/medical boarding or a medical procedure due for checkout today)
+/// 3) Overdue checkouts
 class RemindersScreen extends StatefulWidget {
   const RemindersScreen({super.key});
 
@@ -44,7 +44,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
     if (!mounted) return;
     if (result == WhatsAppOpenResult.notInstalled) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تعذّر فتح واتساب على هذا الجهاز. يمكنك نسخ الرسالة وإرسالها يدوياً.')),
+        const SnackBar(content: Text('Could not open WhatsApp on this device. You can copy the message and send it manually.')),
       );
     }
   }
@@ -52,7 +52,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
   Future<void> _copyMessage(String message) async {
     await Clipboard.setData(ClipboardData(text: message));
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم نسخ الرسالة')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Message copied')));
   }
 
   Widget _whatsAppActions({required String phone, required String message, required Color color}) {
@@ -62,7 +62,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
           child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(backgroundColor: color, minimumSize: const Size(0, 48)),
             icon: const Icon(Icons.chat),
-            label: const Text('إرسال عبر واتساب'),
+            label: const Text('Send via WhatsApp'),
             onPressed: () => _sendWhatsApp(phone: phone, message: message),
           ),
         ),
@@ -86,13 +86,13 @@ class _RemindersScreenState extends State<RemindersScreen> {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('التذكيرات'),
+          title: const Text('Reminders'),
           bottom: const TabBar(
             indicatorColor: Colors.white,
             tabs: [
-              Tab(text: 'المواعيد القادمة'),
-              Tab(text: 'التسليمات اليوم'),
-              Tab(text: 'متأخرون عن الخروج'),
+              Tab(text: 'Upcoming Appointments'),
+              Tab(text: 'Today\'s Checkouts'),
+              Tab(text: 'Overdue Checkouts'),
             ],
           ),
         ),
@@ -113,7 +113,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
         final items = snapshot.data!;
-        if (items.isEmpty) return const Center(child: Text('لا توجد مواعيد قادمة'));
+        if (items.isEmpty) return const Center(child: Text('No upcoming appointments'));
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
@@ -139,8 +139,8 @@ class _RemindersScreenState extends State<RemindersScreen> {
                 notes: a['notes'],
               );
             }
-            // الشاور المجاني وباقي الأسباب (إجراء طبي/أخرى): لا تُرسل رسالة
-            // واتساب للعميل، ويكتفى بتنبيه الموظف داخل التطبيق فقط
+            // Free grooming and other reasons (medical procedure/other): no WhatsApp
+            // message is sent to the client - only an in-app alert for staff is shown
             final isGrooming = reason == AppointmentType.grooming;
 
             return Card(
@@ -150,9 +150,9 @@ class _RemindersScreenState extends State<RemindersScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(a['pet_name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    Text('العميل: ${a['client_name']}'),
-                    Text('نوع الموعد: ${reason ?? '-'}'),
-                    Text('التاريخ: ${a['date']} — الوقت: ${a['time']}'),
+                    Text('Client: ${a['client_name']}'),
+                    Text('Appointment Type: ${reason ?? '-'}'),
+                    Text('Date: ${a['date']} — Time: ${a['time']}'),
                     const SizedBox(height: 10),
                     if (message != null)
                       _whatsAppActions(phone: a['client_phone'], message: message, color: AppColors.success)
@@ -165,12 +165,12 @@ class _RemindersScreenState extends State<RemindersScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
-                          'شاور مجاني — لا تُرسل رسالة للعميل، هذا تنبيه داخلي فقط',
+                          'Free grooming — no message sent to the client, this is an internal alert only',
                           style: TextStyle(color: AppColors.warning, fontWeight: FontWeight.bold, fontSize: 12),
                         ),
                       )
                     else
-                      const Text('لا يوجد قالب رسالة واتساب لهذا النوع', style: TextStyle(color: AppColors.textLight, fontSize: 12)),
+                      const Text('No WhatsApp message template for this type', style: TextStyle(color: AppColors.textLight, fontSize: 12)),
                   ],
                 ),
               ),
@@ -187,7 +187,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
         final items = snapshot.data!;
-        if (items.isEmpty) return const Center(child: Text('لا توجد تسليمات مستحقة اليوم'));
+        if (items.isEmpty) return const Center(child: Text('No checkouts due today'));
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
@@ -202,9 +202,9 @@ class _RemindersScreenState extends State<RemindersScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(item['pet_name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    Text('العميل: ${item['client_name']} — ${item['client_phone']}'),
-                    Text('نوع الحالة: $kind'),
-                    const Text('وقت التسليم المتوقع: اليوم'),
+                    Text('Client: ${item['client_name']} — ${item['client_phone']}'),
+                    Text('Case Type: $kind'),
+                    const Text('Expected Checkout Time: Today'),
                     const SizedBox(height: 10),
                     Builder(builder: (context) {
                       final message = WhatsAppHelper.buildCheckoutDueMessage(
@@ -230,7 +230,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
         final items = snapshot.data!;
-        if (items.isEmpty) return const Center(child: Text('لا يوجد حالات متأخرة عن الخروج'));
+        if (items.isEmpty) return const Center(child: Text('No overdue checkouts'));
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
@@ -256,15 +256,15 @@ class _RemindersScreenState extends State<RemindersScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(color: AppColors.danger, borderRadius: BorderRadius.circular(20)),
-                          child: const Text('متأخر عن الخروج', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                          child: const Text('Overdue for Checkout', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Text('العميل: ${item['client_name']} — ${item['client_phone']}'),
-                    Text('نوع الحالة: ${_kindLabel(item)}'),
-                    Text('تاريخ الخروج المتوقع: ${DateHelper.displayDate(item['expected_exit_date'])}'),
-                    Text('عدد أيام التأخير: $daysLate يوم', style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold)),
+                    Text('Client: ${item['client_name']} — ${item['client_phone']}'),
+                    Text('Case Type: ${_kindLabel(item)}'),
+                    Text('Expected Checkout Date: ${DateHelper.displayDate(item['expected_exit_date'])}'),
+                    Text('Days Overdue: $daysLate', style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),

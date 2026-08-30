@@ -3,7 +3,7 @@ import '../../core/app_colors.dart';
 import '../../database/db_helper.dart';
 import '../../models/client.dart';
 
-/// شاشة الأرشيف: تعرض العملاء والأليفات المؤرشفين مع إمكانية الاستعادة
+/// Archive screen: shows archived clients and pets with the ability to restore them
 class ArchiveScreen extends StatefulWidget {
   const ArchiveScreen({super.key});
 
@@ -30,11 +30,11 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('استعادة العميل'),
-        content: Text('هل تريد استعادة "${client.name}" وإظهاره في القوائم الرئيسية مجدداً؟'),
+        title: const Text('Restore Client'),
+        content: Text('Do you want to restore "${client.name}" and show them in the main lists again?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('استعادة')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Restore')),
         ],
       ),
     );
@@ -42,7 +42,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
 
     await DBHelper.instance.restoreClient(client.id!);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم استعادة العميل')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Client restored')));
     setState(_reload);
   }
 
@@ -50,11 +50,11 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('استعادة الأليفة'),
-        content: Text('هل تريد استعادة "${item['name']}" وإظهارها في ملف العميل مجدداً؟'),
+        title: const Text('Restore Pet'),
+        content: Text('Do you want to restore "${item['name']}" and show them in the client\'s profile again?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('استعادة')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Restore')),
         ],
       ),
     );
@@ -62,7 +62,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
 
     await DBHelper.instance.restorePet(item['id'] as int);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم استعادة الأليفة')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pet restored')));
     setState(_reload);
   }
 
@@ -72,12 +72,12 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('الأرشيف'),
+          title: const Text('Archive'),
           bottom: const TabBar(
             indicatorColor: Colors.white,
             tabs: [
-              Tab(text: 'العملاء المؤرشفون'),
-              Tab(text: 'الأليفات المؤرشفة'),
+              Tab(text: 'Archived Clients'),
+              Tab(text: 'Archived Pets'),
             ],
           ),
         ),
@@ -88,7 +88,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
                 final clients = snapshot.data!;
-                if (clients.isEmpty) return const Center(child: Text('لا يوجد عملاء مؤرشفون'));
+                if (clients.isEmpty) return const Center(child: Text('No archived clients'));
                 return ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: clients.length,
@@ -102,7 +102,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                         trailing: TextButton.icon(
                           onPressed: () => _restoreClient(c),
                           icon: const Icon(Icons.restore),
-                          label: const Text('استعادة'),
+                          label: const Text('Restore'),
                         ),
                       ),
                     );
@@ -115,7 +115,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
                 final pets = snapshot.data!;
-                if (pets.isEmpty) return const Center(child: Text('لا يوجد أليفات مؤرشفة'));
+                if (pets.isEmpty) return const Center(child: Text('No archived pets'));
                 return ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: pets.length,
@@ -125,11 +125,11 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                       child: ListTile(
                         leading: const Icon(Icons.pets, color: AppColors.textLight),
                         title: Text(p['name']),
-                        subtitle: Text('العميل: ${p['client_name']} — ${p['client_phone']}'),
+                        subtitle: Text('Client: ${p['client_name']} — ${p['client_phone']}'),
                         trailing: TextButton.icon(
                           onPressed: () => _restorePet(p),
                           icon: const Icon(Icons.restore),
-                          label: const Text('استعادة'),
+                          label: const Text('Restore'),
                         ),
                       ),
                     );

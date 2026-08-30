@@ -52,18 +52,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (results.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('لا يوجد عملاء مطابقين لبحثك')),
+        const SnackBar(content: Text('No clients match your search')),
       );
       return;
     }
 
-    // نتيجة واحدة فقط: افتح ملفه مباشرة دون خطوة اختيار إضافية
+    // Single result: open its profile directly, skipping the extra selection step
     if (results.length == 1) {
       await _openClientProfile(results.first);
       return;
     }
 
-    // أكثر من نتيجة: اعرضها للموظف ليختار العميل الصحيح
+    // More than one result: show them to the staff member to pick the right client
     final chosen = await showModalBottomSheet<Client>(
       context: context,
       builder: (ctx) => SafeArea(
@@ -72,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             const Padding(
               padding: EdgeInsets.all(16),
-              child: Text('اختر العميل', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              child: Text('Select Client', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             ),
             Flexible(
               child: ListView(
@@ -106,11 +106,11 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: ListView(
             children: [
-              // الشريط العلوي: جرس التذكيرات على اليسار + شريط بحث طويل في المنتصف
+              // Top bar: reminders bell on the left + a long search bar in the middle
               Row(
                 children: [
                   IconButton(
-                    tooltip: 'التذكيرات والمواعيد القادمة',
+                    tooltip: 'Reminders and upcoming appointments',
                     icon: const Icon(Icons.notifications, color: AppColors.primary, size: 30),
                     onPressed: () => Navigator.push(
                       context,
@@ -125,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         textInputAction: TextInputAction.search,
                         onSubmitted: (_) => _search(),
                         decoration: InputDecoration(
-                          hintText: 'ابحث برقم الجوال أو اسم العميل...',
+                          hintText: 'Search by phone number or client name...',
                           prefixIcon: const Icon(Icons.search),
                           suffixIcon: _searching
                               ? const Padding(
@@ -160,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'النسخ الاحتياطي',
+                    tooltip: 'Backup',
                     icon: const Icon(Icons.settings_backup_restore, color: AppColors.textLight),
                     onPressed: () => Navigator.push(
                       context,
@@ -182,13 +182,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              // الأيقونات الرئيسية
+              // Main icons
               Row(
                 children: [
                   Expanded(
                     child: BigIconButton(
                       icon: Icons.person_add_alt_1,
-                      label: 'إضافة عميل',
+                      label: 'Add Client',
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const AddClientScreen()),
@@ -199,13 +199,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: BigIconButton(
                       icon: Icons.event_available,
-                      label: 'المواعيد',
+                      label: 'Appointments',
                       color: AppColors.primaryLight,
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const AppointmentsScreen()),
                       ),
-                      quickAddTooltip: 'إضافة موعد',
+                      quickAddTooltip: 'Add appointment',
                       onQuickAdd: () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const AddAppointmentScreen()),
@@ -220,7 +220,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: BigIconButton(
                       icon: Icons.hotel,
-                      label: 'الفندقة',
+                      label: 'Hotel',
                       color: AppColors.statusInHotel,
                       onTap: () => Navigator.push(
                         context,
@@ -232,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: BigIconButton(
                       icon: Icons.account_balance_wallet,
-                      label: 'رصيد',
+                      label: 'Balance',
                       color: AppColors.warning,
                       onTap: () => Navigator.push(
                         context,
@@ -248,7 +248,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: BigIconButton(
                       icon: Icons.vaccines,
-                      label: 'باقات التطعيمات',
+                      label: 'Vaccination Packages',
                       color: AppColors.primaryDark,
                       onTap: () => Navigator.push(
                         context,
@@ -260,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: BigIconButton(
                       icon: Icons.content_cut,
-                      label: 'الشاور والحلاقة',
+                      label: 'Shower & Grooming',
                       color: AppColors.accent,
                       onTap: () => Navigator.push(
                         context,
@@ -271,8 +271,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              // لوحة المعلومات (Dashboard) - جزء من نفس القائمة القابلة للتمرير
-              // حتى تختفي الأيقونات عند التمرير لأسفل ويظهر المزيد من المحتوى
+              // Dashboard - part of the same scrollable list
+              // so the icons disappear when scrolling down and more content shows
               const OverdueBanner(),
               const RecentCheckinsSection(),
               const SizedBox(height: 14),

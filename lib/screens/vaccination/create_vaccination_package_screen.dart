@@ -5,8 +5,8 @@ import '../../models/client.dart';
 import '../../models/pet.dart';
 import '../client/add_client_screen.dart';
 
-/// شاشة إنشاء باقة تطعيمات جديدة: اختيار العميل ← اختيار الأليفة ← تحديد
-/// التطعيمات من قائمة (Checklist) ← حفظ الباقة مرتبطة بالأليفة
+/// Screen for creating a new vaccination package: select client → select pet
+/// → pick vaccines from a checklist → save the package linked to the pet
 class CreateVaccinationPackageScreen extends StatefulWidget {
   const CreateVaccinationPackageScreen({super.key});
 
@@ -19,18 +19,18 @@ enum _Step { client, pet, vaccines }
 class _CreateVaccinationPackageScreenState extends State<CreateVaccinationPackageScreen> {
   _Step _step = _Step.client;
 
-  // خطوة 1: البحث عن العميل
+  // Step 1: Search for client
   final _searchController = TextEditingController();
   List<Client> _searchResults = [];
   bool _searching = false;
   bool _searched = false;
   Client? _selectedClient;
 
-  // خطوة 2: اختيار الأليفة
+  // Step 2: Select pet
   List<Pet> _pets = [];
   Pet? _selectedPet;
 
-  // خطوة 3: قائمة التطعيمات
+  // Step 3: Vaccine list
   List<Map<String, dynamic>> _masterVaccines = [];
   final Set<String> _selectedVaccines = {};
   final _newVaccineController = TextEditingController();
@@ -49,8 +49,9 @@ class _CreateVaccinationPackageScreenState extends State<CreateVaccinationPackag
       MaterialPageRoute(builder: (_) => const AddClientScreen()),
     );
     if (!mounted) return;
-    // بعد العودة من إضافة العميل وأليفته، نعيد نفس البحث تلقائياً
-    // حتى يظهر العميل الجديد مباشرة إن كان قد أُضيف بنفس الاسم/الرقم
+    // After returning from adding the client and their pet, we repeat the
+    // same search automatically so the new client shows up right away if
+    // they were added with the same name/number
     if (_searchController.text.trim().isNotEmpty) {
       await _search();
     }
@@ -109,7 +110,7 @@ class _CreateVaccinationPackageScreenState extends State<CreateVaccinationPackag
   Future<void> _save() async {
     if (_selectedVaccines.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء اختيار تطعيمة واحدة على الأقل')),
+        const SnackBar(content: Text('Please select at least one vaccine')),
       );
       return;
     }
@@ -117,22 +118,22 @@ class _CreateVaccinationPackageScreenState extends State<CreateVaccinationPackag
     await DBHelper.instance.createVaccinationPackageForPet(
       petId: _selectedPet!.id!,
       vaccineNames: _selectedVaccines.toList(),
-      name: 'باقة ${_selectedPet!.name}',
+      name: 'Package for ${_selectedPet!.name}',
     );
     if (!mounted) return;
     setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ الباقة')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Package saved')));
     Navigator.pop(context, true);
   }
 
   String get _title {
     switch (_step) {
       case _Step.client:
-        return 'باقة جديدة — اختر العميل';
+        return 'New Package — Select Client';
       case _Step.pet:
-        return 'باقة جديدة — اختر الأليفة';
+        return 'New Package — Select Pet';
       case _Step.vaccines:
-        return 'باقة جديدة — التطعيمات';
+        return 'New Package — Vaccines';
     }
   }
 
@@ -170,7 +171,7 @@ class _CreateVaccinationPackageScreenState extends State<CreateVaccinationPackag
                 autofocus: true,
                 textInputAction: TextInputAction.search,
                 decoration: const InputDecoration(
-                  labelText: 'ابحث برقم الجوال أو اسم العميل',
+                  labelText: 'Search by phone number or client name',
                   prefixIcon: Icon(Icons.search),
                 ),
                 onSubmitted: (_) => _search(),
@@ -190,11 +191,11 @@ class _CreateVaccinationPackageScreenState extends State<CreateVaccinationPackag
         const SizedBox(height: 16),
         if (_searching) const Center(child: CircularProgressIndicator()),
         if (_searched && _searchResults.isEmpty) ...[
-          const Text('لا يوجد عملاء مطابقين لبحثك', style: TextStyle(color: Colors.red)),
+          const Text('No clients match your search', style: TextStyle(color: Colors.red)),
           const SizedBox(height: 10),
           OutlinedButton.icon(
             icon: const Icon(Icons.person_add_alt_1),
-            label: const Text('إضافة عميل جديد وأليفته'),
+            label: const Text('Add New Client and Pet'),
             onPressed: _addNewClient,
           ),
           const SizedBox(height: 10),
@@ -225,13 +226,13 @@ class _CreateVaccinationPackageScreenState extends State<CreateVaccinationPackag
         TextButton.icon(
           onPressed: () => setState(() => _step = _Step.client),
           icon: const Icon(Icons.arrow_back),
-          label: const Text('رجوع لاختيار عميل آخر'),
+          label: const Text('Back to Select Another Client'),
         ),
-        Text('العميل: ${_selectedClient!.name} — ${_selectedClient!.phone}',
+        Text('Client: ${_selectedClient!.name} — ${_selectedClient!.phone}',
             style: const TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         if (_pets.isEmpty)
-          const Expanded(child: Center(child: Text('لا يوجد أليفات مسجلة لهذا العميل')))
+          const Expanded(child: Center(child: Text('No pets registered for this client')))
         else
           Expanded(
             child: ListView(
@@ -259,12 +260,12 @@ class _CreateVaccinationPackageScreenState extends State<CreateVaccinationPackag
         TextButton.icon(
           onPressed: () => setState(() => _step = _Step.pet),
           icon: const Icon(Icons.arrow_back),
-          label: const Text('رجوع لاختيار أليفة أخرى'),
+          label: const Text('Back to Select Another Pet'),
         ),
-        Text('الأليفة: ${_selectedPet!.name} (${_selectedClient!.name})',
+        Text('Pet: ${_selectedPet!.name} (${_selectedClient!.name})',
             style: const TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        const Text('حدد التطعيمات المشمولة في الباقة:', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('Select the vaccines included in the package:', style: TextStyle(fontWeight: FontWeight.bold)),
         Expanded(
           child: ListView(
             children: [
@@ -290,7 +291,7 @@ class _CreateVaccinationPackageScreenState extends State<CreateVaccinationPackag
                   Expanded(
                     child: TextField(
                       controller: _newVaccineController,
-                      decoration: const InputDecoration(labelText: 'إضافة تطعيم جديد للقائمة'),
+                      decoration: const InputDecoration(labelText: 'Add a new vaccine to the list'),
                       onSubmitted: (_) => _addNewVaccineToList(),
                     ),
                   ),
@@ -312,7 +313,7 @@ class _CreateVaccinationPackageScreenState extends State<CreateVaccinationPackag
             icon: _saving
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                 : const Icon(Icons.save),
-            label: Text(_saving ? 'جاري الحفظ...' : 'حفظ الباقة'),
+            label: Text(_saving ? 'Saving...' : 'Save Package'),
             onPressed: _saving ? null : _save,
           ),
         ),

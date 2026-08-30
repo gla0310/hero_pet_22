@@ -9,9 +9,9 @@ import '../../utils/date_helper.dart';
 import '../archive/archive_screen.dart';
 import '../forms/manage_forms_screen.dart';
 
-/// شاشة بسيطة للنسخ الاحتياطي واسترجاع قاعدة البيانات المحلية
-/// النسخ الاحتياطي: مشاركة/حفظ نسخة من ملف قاعدة البيانات (hero_pet.db)
-/// الاسترجاع: اختيار ملف نسخة احتياطية سابقة واستبدال قاعدة البيانات الحالية بها
+/// Simple screen for backing up and restoring the local database
+/// Backup: share/save a copy of the database file (hero_pet.db)
+/// Restore: pick a previous backup file and replace the current database with it
 class BackupScreen extends StatefulWidget {
   const BackupScreen({super.key});
 
@@ -32,7 +32,7 @@ class _BackupScreenState extends State<BackupScreen> {
       final dbPath = await DBHelper.instance.dbPath;
       final dbFile = File(dbPath);
       if (!await dbFile.exists()) {
-        setState(() => _message = 'لا توجد قاعدة بيانات حتى الآن لعمل نسخة منها');
+        setState(() => _message = 'There is no database yet to back up');
         return;
       }
 
@@ -41,10 +41,10 @@ class _BackupScreenState extends State<BackupScreen> {
       final backupPath = p.join(tempDir.path, backupName);
       await dbFile.copy(backupPath);
 
-      await Share.shareXFiles([XFile(backupPath)], text: 'نسخة احتياطية من بيانات hero pet');
-      setState(() => _message = 'تم إنشاء النسخة الاحتياطية بنجاح');
+      await Share.shareXFiles([XFile(backupPath)], text: 'Backup of hero pet data');
+      setState(() => _message = 'Backup created successfully');
     } catch (e) {
-      setState(() => _message = 'حدث خطأ أثناء النسخ الاحتياطي: $e');
+      setState(() => _message = 'An error occurred during backup: $e');
     } finally {
       setState(() => _working = false);
     }
@@ -54,11 +54,11 @@ class _BackupScreenState extends State<BackupScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('تأكيد الاسترجاع'),
-        content: const Text('سيتم استبدال جميع البيانات الحالية بالنسخة المختارة. هل أنت متأكد؟'),
+        title: const Text('Confirm Restore'),
+        content: const Text('All current data will be replaced with the selected backup. Are you sure?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('نعم، استرجاع')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Yes, Restore')),
         ],
       ),
     );
@@ -81,9 +81,9 @@ class _BackupScreenState extends State<BackupScreen> {
       final dbPath = await DBHelper.instance.dbPath;
       await File(pickedPath).copy(dbPath);
 
-      setState(() => _message = 'تم استرجاع البيانات بنجاح. الرجاء إعادة تشغيل التطبيق.');
+      setState(() => _message = 'Data restored successfully. Please restart the app.');
     } catch (e) {
-      setState(() => _message = 'حدث خطأ أثناء الاسترجاع: $e');
+      setState(() => _message = 'An error occurred during restore: $e');
     } finally {
       setState(() => _working = false);
     }
@@ -92,27 +92,27 @@ class _BackupScreenState extends State<BackupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('النسخ الاحتياطي والاسترجاع')),
+      appBar: AppBar(title: const Text('Backup and Restore')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'يمكنك أخذ نسخة احتياطية من بيانات العيادة وحفظها في مكان آمن، '
-              'أو استرجاع نسخة سابقة عند الحاجة.',
+              'You can back up the clinic\'s data and save it in a safe place, '
+              'or restore a previous backup when needed.',
               style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 30),
             ElevatedButton.icon(
               icon: const Icon(Icons.backup),
-              label: const Text('إنشاء نسخة احتياطية'),
+              label: const Text('Create Backup'),
               onPressed: _working ? null : _backup,
             ),
             const SizedBox(height: 16),
             OutlinedButton.icon(
               icon: const Icon(Icons.restore),
-              label: const Text('استرجاع نسخة احتياطية'),
+              label: const Text('Restore Backup'),
               onPressed: _working ? null : _restore,
             ),
             const SizedBox(height: 24),
@@ -121,13 +121,13 @@ class _BackupScreenState extends State<BackupScreen> {
               Text(_message!, textAlign: TextAlign.center, style: const TextStyle(fontSize: 15)),
             const Divider(height: 40),
             const Text(
-              'العملاء والأليفات المؤرشفون لا يزالون محفوظين بالكامل ويمكن استعادتهم من هنا.',
+              'Archived clients and pets remain fully saved and can be restored from here.',
               style: TextStyle(fontSize: 14, color: Colors.black54),
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
               icon: const Icon(Icons.archive_outlined),
-              label: const Text('عرض الأرشيف'),
+              label: const Text('View Archive'),
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const ArchiveScreen()),
@@ -136,7 +136,7 @@ class _BackupScreenState extends State<BackupScreen> {
             const SizedBox(height: 12),
             OutlinedButton.icon(
               icon: const Icon(Icons.description_outlined),
-              label: const Text('إدارة الاستمارات'),
+              label: const Text('Manage Forms'),
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const ManageFormsScreen()),

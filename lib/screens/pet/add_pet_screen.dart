@@ -7,10 +7,11 @@ import '../../models/pet.dart';
 import '../../utils/image_picker_helper.dart';
 import 'pet_actions_screen.dart';
 
-/// شاشة إضافة أليفة جديدة (تُستخدم بعد إضافة عميل جديد أو من ملف عميل موجود)
-/// الحقول المطلوبة فقط: الاسم، النوع، الجنس، الصورة، العمر.
-/// باقي البيانات (السلالة، الوزن، اللون، المايكروشيب، الملاحظات...) تُضاف
-/// لاحقاً من شاشة "تعديل بيانات الأليفة" إن احتاجها الموظف.
+/// Screen for adding a new pet (used after adding a new client or from an
+/// existing client's profile). Only required fields: name, type, gender,
+/// photo, age. The rest of the data (breed, weight, color, microchip,
+/// notes...) is added later from the "Edit Pet Information" screen if the
+/// staff member needs it.
 class AddPetScreen extends StatefulWidget {
   final int clientId;
   final String clientName;
@@ -39,12 +40,12 @@ class _AddPetScreenState extends State<AddPetScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('التقاط صورة بالكاميرا'),
+              title: const Text('Take a Photo'),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('اختيار من المعرض'),
+              title: const Text('Choose from Gallery'),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
           ],
@@ -61,13 +62,13 @@ class _AddPetScreenState extends State<AddPetScreen> {
 
     if (_gender == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء اختيار جنس الأليفة')),
+        const SnackBar(content: Text('Please select the pet\'s gender')),
       );
       return;
     }
     if (_imagePath == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('صورة الأليفة إجبارية')),
+        const SnackBar(content: Text('A pet photo is required')),
       );
       return;
     }
@@ -102,7 +103,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('إضافة أليفة — ${widget.clientName}')),
+      appBar: AppBar(title: Text('Add Pet — ${widget.clientName}')),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -124,7 +125,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
               ),
               Center(
                 child: Text(
-                  'صورة الأليفة *',
+                  'Pet Photo *',
                   style: TextStyle(
                     fontSize: 12,
                     color: _imagePath == null ? Colors.red : Colors.grey.shade600,
@@ -134,32 +135,32 @@ class _AddPetScreenState extends State<AddPetScreen> {
               const SizedBox(height: 20),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'اسم الأليفة *', prefixIcon: Icon(Icons.badge)),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'اسم الأليفة إجباري' : null,
+                decoration: const InputDecoration(labelText: 'Pet Name *', prefixIcon: Icon(Icons.badge)),
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Pet name is required' : null,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: _type,
-                decoration: const InputDecoration(labelText: 'النوع *', prefixIcon: Icon(Icons.category)),
+                decoration: const InputDecoration(labelText: 'Type *', prefixIcon: Icon(Icons.category)),
                 items: PetTypes.common.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
                 onChanged: (v) => setState(() => _type = v ?? _type),
               ),
               const SizedBox(height: 16),
-              const Text('الجنس *', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Gender *', style: TextStyle(fontWeight: FontWeight.bold)),
               Row(
                 children: [
                   Expanded(
                     child: RadioListTile<String>(
-                      title: const Text('ذكر'),
-                      value: 'ذكر',
+                      title: const Text('Male'),
+                      value: 'Male',
                       groupValue: _gender,
                       onChanged: (v) => setState(() => _gender = v),
                     ),
                   ),
                   Expanded(
                     child: RadioListTile<String>(
-                      title: const Text('أنثى'),
-                      value: 'أنثى',
+                      title: const Text('Female'),
+                      value: 'Female',
                       groupValue: _gender,
                       onChanged: (v) => setState(() => _gender = v),
                     ),
@@ -170,11 +171,11 @@ class _AddPetScreenState extends State<AddPetScreen> {
               TextFormField(
                 controller: _birthDateController,
                 decoration: const InputDecoration(
-                  labelText: 'العمر *',
+                  labelText: 'Age *',
                   prefixIcon: Icon(Icons.cake),
-                  hintText: 'مثال: سنتين، أو 2023-05-01',
+                  hintText: 'Example: 2 years, or 2023-05-01',
                 ),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'عمر الأليفة إجباري' : null,
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Pet age is required' : null,
               ),
               const SizedBox(height: 30),
               ElevatedButton.icon(
@@ -182,7 +183,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                 icon: _saving
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                     : const Icon(Icons.save),
-                label: Text(_saving ? 'جاري الحفظ...' : 'حفظ الأليفة'),
+                label: Text(_saving ? 'Saving...' : 'Save Pet'),
               ),
             ],
           ),

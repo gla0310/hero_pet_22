@@ -15,13 +15,13 @@ class AllCheckinsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('جميع دخولات الفندقة')),
+      appBar: AppBar(title: const Text('All Hotel Check-ins')),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: DBHelper.instance.getRecentAdmissionCheckins(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           final items = snapshot.data!;
-          if (items.isEmpty) return const Center(child: Text('لا يوجد دخولات بعد'));
+          if (items.isEmpty) return const Center(child: Text('No check-ins yet'));
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: items.length,
@@ -31,7 +31,7 @@ class AllCheckinsScreen extends StatelessWidget {
                 child: ListTile(
                   leading: const Icon(Icons.pets, color: AppColors.statusInHotel, size: 30),
                   title: Text(item['pet_name']),
-                  subtitle: Text('${item['client_name']} — ${item['client_phone']}\n${_kindLabel(item)} — دخول: ${item['entry_date']}'),
+                  subtitle: Text('${item['client_name']} — ${item['client_phone']}\n${_kindLabel(item)} — Check-in: ${item['entry_date']}'),
                   isThreeLine: true,
                   trailing: StatusBadge(status: item['status']),
                 ),

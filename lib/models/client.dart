@@ -5,7 +5,7 @@ class Client {
   final String? notes;
   final String? createdAt; // yyyy-MM-dd HH:mm
   final double balance;
-  final String? civilId; // السجل المدني / رقم الهوية / الإقامة (اختياري)
+  final String? civilId; // Civil registry / ID number / residency permit (optional)
   final bool archived;
 
   Client({

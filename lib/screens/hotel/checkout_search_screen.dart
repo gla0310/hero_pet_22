@@ -7,8 +7,8 @@ import '../../models/admission.dart';
 import '../../utils/date_helper.dart';
 import 'checkout_screen.dart';
 
-/// شاشة تسجيل الخروج: تعرض كل الأليفات المتواجدة حالياً في الفندقة مباشرة
-/// (بدون الحاجة للبحث)، مع إمكانية البحث عن عميل معيّن أيضاً.
+/// Checkout screen: shows all pets currently present in the hotel directly
+/// (without needing to search), while also allowing a search for a specific client.
 class CheckoutSearchScreen extends StatefulWidget {
   const CheckoutSearchScreen({super.key});
 
@@ -103,7 +103,7 @@ class _CheckoutSearchScreenState extends State<CheckoutSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('تسجيل خروج')),
+      appBar: AppBar(title: const Text('Checkout')),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -116,7 +116,7 @@ class _CheckoutSearchScreenState extends State<CheckoutSearchScreen> {
                     controller: _searchController,
                     textInputAction: TextInputAction.search,
                     decoration: const InputDecoration(
-                      labelText: 'ابحث برقم الجوال أو اسم العميل (اختياري)',
+                      labelText: 'Search by phone number or client name (optional)',
                       prefixIcon: Icon(Icons.search),
                     ),
                     onSubmitted: (_) => _search(),
@@ -138,10 +138,10 @@ class _CheckoutSearchScreenState extends State<CheckoutSearchScreen> {
             if (_searched && _searchResults.isEmpty && _selectedClient == null)
               const Padding(
                 padding: EdgeInsets.only(bottom: 12),
-                child: Text('لا يوجد عملاء مطابقين لبحثك', style: TextStyle(color: Colors.red)),
+                child: Text('No clients match your search', style: TextStyle(color: Colors.red)),
               ),
 
-            // نتائج البحث (إن وُجدت ولم يُختر عميل بعد)
+            // Search results (if any, and no client selected yet)
             if (_searchResults.isNotEmpty && _selectedClient == null)
               Expanded(
                 child: ListView(
@@ -161,22 +161,22 @@ class _CheckoutSearchScreenState extends State<CheckoutSearchScreen> {
                 ),
               ),
 
-            // عميل محدد من نتائج البحث: نعرض أليفاته فقط
+            // Client selected from search results: show only their pets
             if (_selectedClient != null) ...[
               Row(
                 children: [
                   Expanded(
                     child: Text(
-                      'العميل: ${_selectedClient!.name} — ${_selectedClient!.phone}',
+                      'Client: ${_selectedClient!.name} — ${_selectedClient!.phone}',
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ),
-                  TextButton(onPressed: _changeClient, child: const Text('رجوع للكل')),
+                  TextButton(onPressed: _changeClient, child: const Text('Back to All')),
                 ],
               ),
               const SizedBox(height: 12),
               if (_admissions.isEmpty)
-                const Expanded(child: Center(child: Text('لا يوجد أليفات موجودة حالياً لهذا العميل')))
+                const Expanded(child: Center(child: Text('No pets currently present for this client')))
               else
                 Expanded(
                   child: ListView(
@@ -185,7 +185,7 @@ class _CheckoutSearchScreenState extends State<CheckoutSearchScreen> {
                         child: ListTile(
                           leading: const Icon(Icons.pets, color: AppColors.statusInHotel),
                           title: Text(item['pet_name']),
-                          subtitle: Text('${_kindLabel(item)} — دخول: ${item['entry_date']}'),
+                          subtitle: Text('${_kindLabel(item)} — Entry: ${item['entry_date']}'),
                           trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                           onTap: () => _goToCheckout(item),
                         ),
@@ -195,9 +195,9 @@ class _CheckoutSearchScreenState extends State<CheckoutSearchScreen> {
                 ),
             ],
 
-            // الوضع الافتراضي: لا بحث نشط ولا عميل مختار — نعرض كل المتواجدين حالياً
+            // Default state: no active search and no client selected — show everyone currently present
             if (_selectedClient == null && _searchResults.isEmpty && !_searching) ...[
-              const Text('المتواجدون حالياً', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const Text('Currently Present', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 8),
               Expanded(
                 child: FutureBuilder<List<Map<String, dynamic>>>(
@@ -206,7 +206,7 @@ class _CheckoutSearchScreenState extends State<CheckoutSearchScreen> {
                     if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
                     final items = snapshot.data!;
                     if (items.isEmpty) {
-                      return const Center(child: Text('لا يوجد أليفات موجودة حالياً'));
+                      return const Center(child: Text('No pets currently present'));
                     }
                     return ListView.builder(
                       itemCount: items.length,
@@ -220,8 +220,8 @@ class _CheckoutSearchScreenState extends State<CheckoutSearchScreen> {
                             leading: Icon(Icons.pets, color: isOverdue ? AppColors.danger : AppColors.statusInHotel),
                             title: Text(item['pet_name'], style: const TextStyle(fontWeight: FontWeight.bold)),
                             subtitle: Text(
-                              '${item['client_name']} — ${item['client_phone']}\n${_kindLabel(item)} — دخول: ${item['entry_date']}'
-                              '${isOverdue ? '\nمتأخر عن الخروج — $daysLate يوم' : ''}',
+                              '${item['client_name']} — ${item['client_phone']}\n${_kindLabel(item)} — Entry: ${item['entry_date']}'
+                              '${isOverdue ? '\nOverdue for checkout — $daysLate day(s)' : ''}',
                             ),
                             isThreeLine: true,
                             trailing: const Icon(Icons.arrow_forward_ios, size: 16),

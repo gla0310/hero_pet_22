@@ -1,12 +1,12 @@
 import 'package:url_launcher/url_launcher.dart';
 import '../core/constants.dart';
 
-/// نتيجة محاولة فتح واتساب
+/// Result of an attempt to open WhatsApp
 enum WhatsAppOpenResult { opened, notInstalled }
 
-/// أداة مساعدة لفتح تطبيق واتساب برسالة جاهزة دون إرسالها تلقائياً،
-/// الموظف هو من يضغط على زر الإرسال بنفسه. تحتوي أيضاً على كل قوالب
-/// الرسائل الرسمية المعتمدة لـ Hero Pet.
+/// A helper tool for opening the WhatsApp app with a ready-made message
+/// without sending it automatically - staff press the send button themselves.
+/// Also contains all of Hero Pet's official approved message templates.
 class WhatsAppHelper {
   static String _cleanPhone(String phone) {
     String cleanPhone = phone.replaceAll(RegExp(r'[^0-9+]'), '');
@@ -22,8 +22,8 @@ class WhatsAppHelper {
   }) async {
     final cleanPhone = _cleanPhone(phone);
 
-    // نجرب أولاً رابط whatsapp:// المباشر (يفتح التطبيق المثبت فعلياً،
-    // سواء كان العادي أو Business)
+    // First try the direct whatsapp:// link (opens whichever app is actually
+    // installed, regular or Business)
     final directUri = Uri.parse(
       'whatsapp://send?phone=$cleanPhone&text=${Uri.encodeComponent(message)}',
     );
@@ -33,10 +33,10 @@ class WhatsAppHelper {
         if (ok) return WhatsAppOpenResult.opened;
       }
     } catch (_) {
-      // نتجاهل ونجرب الرابط البديل
+      // Ignore and try the fallback link
     }
 
-    // في حال عدم توفره نستخدم رابط wa.me كخيار بديل (يعمل عبر المتصفح أيضاً)
+    // If unavailable, use the wa.me link as a fallback (also works via browser)
     final webUri = Uri.parse(
       'https://wa.me/$cleanPhone?text=${Uri.encodeComponent(message)}',
     );
@@ -44,128 +44,128 @@ class WhatsAppHelper {
       final ok = await launchUrl(webUri, mode: LaunchMode.externalApplication);
       if (ok) return WhatsAppOpenResult.opened;
     } catch (_) {
-      // لا يوجد شيء يمكن فتحه
+      // Nothing left to try
     }
 
     return WhatsAppOpenResult.notInstalled;
   }
 
-  /// اللقب المناسب حسب جنس الأليف: بطلكم (ذكر) أو بطلتكم (أنثى)
-  static String heroPronoun(String? gender) => gender == 'أنثى' ? 'بطلتكم' : 'بطلكم';
+  /// The appropriate title based on the pet's gender: "your hero" (male) or "your heroine" (female)
+  static String heroPronoun(String? gender) => gender == 'Female' ? 'your heroine' : 'your hero';
 
-  // ==================== تذكير بموعد قادم ====================
+  // ==================== Upcoming appointment reminder ====================
 
-  /// قالب 1: تذكير بموعد متابعة
+  /// Template 1: Follow-up appointment reminder
   static String buildFollowUpAppointmentMessage({
     required String petName,
     required String weekday,
     required String date,
     String? notes,
   }) {
-    return 'تذكير: بطلكم $petName لديه موعد متابعة في عيادة البطل الأليف يوم $weekday $date.\n\n'
-        'تفاصيل الموعد: ${(notes == null || notes.isEmpty) ? '-' : notes}\n\n'
-        'نسعد باستقبالكم وخدمة أبطالكم.';
+    return 'Reminder: your hero $petName has a follow-up appointment at Hero Pet Clinic on $weekday $date.\n\n'
+        'Appointment details: ${(notes == null || notes.isEmpty) ? '-' : notes}\n\n'
+        'We look forward to welcoming you and serving your heroes.';
   }
 
-  /// قالب 2: تذكير بموعد تطعيم
+  /// Template 2: Vaccination appointment reminder
   static String buildVaccinationAppointmentMessage({
     required String petName,
     required String weekday,
     required String date,
     String? notes,
   }) {
-    return 'تذكير: بطلكم $petName لديه موعد تطعيم في عيادة البطل الأليف يوم $weekday $date.\n\n'
-        'تفاصيل الموعد: ${(notes == null || notes.isEmpty) ? '-' : notes}\n\n'
-        'نسعد باستقبالكم وخدمة أبطالكم.';
+    return 'Reminder: your hero $petName has a vaccination appointment at Hero Pet Clinic on $weekday $date.\n\n'
+        'Appointment details: ${(notes == null || notes.isEmpty) ? '-' : notes}\n\n'
+        'We look forward to welcoming you and serving your heroes.';
   }
 
-  // ==================== تذكير بالخروج اليوم ====================
+  // ==================== Today's check-out reminder ====================
 
-  /// قوالب 3-5: تذكير بخروج اليوم حسب نوع الحالة
+  /// Templates 3-5: Today's check-out reminder based on admission type
   static String buildCheckoutDueMessage({
     required String petName,
     String? gender,
-    required String kind, // من AdmissionKind
+    required String kind, // From AdmissionKind
   }) {
     final pronoun = heroPronoun(gender);
     if (kind == AdmissionKind.hotelTreatment) {
-      return 'الحمدلله على السلامة، اليوم موعد خروج $pronoun $petName من الفندقة العلاجية.\n\n'
-          'نسعد باستقبالكم وخدمة أبطالكم.';
+      return 'Great news, today is $pronoun $petName\'s check-out day from treatment boarding.\n\n'
+          'We look forward to welcoming you and serving your heroes.';
     }
     if (kind == AdmissionKind.procedure) {
-      return 'الحمدلله على السلامة، اليوم موعد خروج $pronoun $petName بعد الإجراء الطبي.\n\n'
-          'نسعد باستقبالكم وخدمة أبطالكم.';
+      return 'Great news, today is $pronoun $petName\'s check-out day after the medical procedure.\n\n'
+          'We look forward to welcoming you and serving your heroes.';
     }
-    return 'تذكير: اليوم موعد خروج $pronoun $petName من الفندقة العادية.\n\n'
-        'نسعد باستقبالكم وخدمة أبطالكم.';
+    return 'Reminder: today is $pronoun $petName\'s check-out day from regular boarding.\n\n'
+        'We look forward to welcoming you and serving your heroes.';
   }
 
-  // ==================== تأكيد تسجيل الدخول ====================
+  // ==================== Check-in confirmation ====================
 
-  /// قوالب 6-8: تأكيد تسجيل الدخول حسب نوع الحالة
+  /// Templates 6-8: Check-in confirmation based on admission type
   static String buildCheckinConfirmationMessage({
     required String petName,
     String? gender,
-    required String kind, // من AdmissionKind
+    required String kind, // From AdmissionKind
   }) {
     final pronoun = heroPronoun(gender);
     if (kind == AdmissionKind.hotelTreatment) {
-      return 'تم تسجيل دخول $pronoun $petName في الفندقة العلاجية.\n\n'
-          'نسعد بخدمتكم والاهتمام ببطلنا.';
+      return '$pronoun $petName has been checked in to treatment boarding.\n\n'
+          'We are happy to serve you and look after our hero.';
     }
     if (kind == AdmissionKind.procedure) {
-      return 'تم تسجيل دخول $pronoun $petName لإجراءه الطبي.\n\n'
-          'نسعد بخدمتكم والاهتمام ببطلنا.';
+      return '$pronoun $petName has been checked in for the medical procedure.\n\n'
+          'We are happy to serve you and look after our hero.';
     }
-    return 'تم تسجيل دخول $pronoun $petName في الفندقة.\n\n'
-        'نسعد بخدمتكم والاهتمام ببطلنا.';
+    return '$pronoun $petName has been checked in to boarding.\n\n'
+        'We are happy to serve you and look after our hero.';
   }
 
-  // ==================== تأكيد تسجيل الخروج ====================
+  // ==================== Check-out confirmation ====================
 
-  /// قوالب 9-11: تأكيد تسجيل الخروج حسب نوع الحالة
+  /// Templates 9-11: Check-out confirmation based on admission type
   static String buildCheckoutConfirmationMessage({
     required String petName,
     String? gender,
-    required String kind, // من AdmissionKind
+    required String kind, // From AdmissionKind
   }) {
     final pronoun = heroPronoun(gender);
     if (kind == AdmissionKind.hotelTreatment) {
-      return 'تم تسجيل خروج $pronoun $petName من الفندقة العلاجية.\n\n'
-          'نسعد بخدمتكم دائمًا.';
+      return '$pronoun $petName has been checked out of treatment boarding.\n\n'
+          'We are always happy to serve you.';
     }
     if (kind == AdmissionKind.procedure) {
-      return 'تم تسجيل خروج $pronoun $petName بعد الإجراء الطبي.\n\n'
-          'نسعد بخدمتكم دائمًا.';
+      return '$pronoun $petName has been checked out after the medical procedure.\n\n'
+          'We are always happy to serve you.';
     }
-    return 'تم تسجيل خروج $pronoun $petName من الفندقة.\n\n'
-        'نسعد بخدمتكم دائمًا.';
+    return '$pronoun $petName has been checked out of boarding.\n\n'
+        'We are always happy to serve you.';
   }
 
-  // ==================== انتهاء خدمة الشاور والحلاقة ====================
+  // ==================== Grooming & bathing service completed ====================
 
-  /// رسالة انتهاء خدمة الشاور/الحلاقة - تُظهر ضمير المذكر/المؤنث لكل من
-  /// "بطلكم/بطلتكم" و"هو/هي" حسب جنس الأليف
+  /// Grooming/bathing completion message - shows the correct pronoun for
+  /// "your hero/heroine" and "he/she" based on the pet's gender
   static String buildGroomingCompletedMessage({
     required String petName,
     String? gender,
   }) {
     final pronoun = heroPronoun(gender);
-    final heShe = gender == 'أنثى' ? 'هي' : 'هو';
-    return 'بشرى: انتهت خدمة $pronoun $petName و$heShe الآن بانتظاركم.\n\n'
-        'نسعد باستقبالكم وخدمة أبطالكم.';
+    final heShe = gender == 'Female' ? 'she' : 'he';
+    return 'Good news: $pronoun $petName\'s service is complete and $heShe is now waiting for you.\n\n'
+        'We look forward to welcoming you and serving your heroes.';
   }
 
-  // ==================== موعد خروج اليوم (من شاشة المتواجدين في الفندقة) ====================
+  // ==================== Today's check-out (from the current guests screen) ====================
 
-  /// رسالة موحّدة لكل أنواع الفندقة (عادية/علاجية) عندما يكون موعد خروج
-  /// الأليف اليوم - تُستخدم من شاشة "المتواجدون حالياً في الفندقة"
+  /// A unified message for all boarding types (regular/treatment) when the
+  /// pet's check-out day is today - used from the "currently in the hotel" screen
   static String buildHotelCheckoutTodayMessage({
     required String petName,
     String? gender,
   }) {
     final pronoun = heroPronoun(gender);
-    final suffix = gender == 'أنثى' ? 'ها' : 'ه';
-    return '$pronoun $petName موعد خروج$suffix من الفندقة اليوم، متى حابين نجهز$suffix؟';
+    final suffix = gender == 'Female' ? 'her' : 'him';
+    return '$pronoun $petName is due to check out of boarding today, when would you like us to have $suffix ready?';
   }
 }

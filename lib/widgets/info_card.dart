@@ -25,7 +25,7 @@ class InfoRow extends StatelessWidget {
   }
 }
 
-/// شارة تعرض حالة الأليفة الحالية بلون مناسب
+/// A badge that shows the pet's current status in an appropriate color
 class StatusBadge extends StatelessWidget {
   final String status;
 
@@ -33,12 +33,12 @@ class StatusBadge extends StatelessWidget {
 
   Color _colorForStatus() {
     switch (status) {
-      case 'موجودة في الفندقة':
+      case 'In Hotel':
         return AppColors.statusInHotel;
-      case 'موجودة في العيادة':
+      case 'In Clinic':
         return AppColors.statusInClinic;
-      case 'تم الخروج':
-      case 'تم التسليم':
+      case 'Checked Out':
+      case 'Delivered':
         return AppColors.statusCheckedOut;
       default:
         return AppColors.textLight;

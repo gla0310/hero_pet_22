@@ -10,7 +10,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
-/// البيانات اللازمة لإنشاء PDF داخل الـ Isolate
+/// The data needed to generate a PDF inside the Isolate
 class _PdfBuildParams {
   final String templateName;
   final String serviceTypeLabel;
@@ -46,7 +46,7 @@ class _PdfBuildParams {
   });
 }
 
-/// Worker دائم لإنشاء ملفات PDF في الخلفية.
+/// A persistent worker for generating PDF files in the background.
 class _PdfWorker {
   static _PdfWorker? _instance;
 
@@ -90,12 +90,12 @@ class _PdfWorker {
     }
 
     throw Exception(
-      'فشل إنشاء PDF: $result',
+      'Failed to generate PDF: $result',
     );
   }
 }
 
-/// نقطة تشغيل الـ Isolate
+/// The Isolate's entry point
 void _workerEntry(
   SendPort mainSendPort,
 ) {
@@ -129,7 +129,7 @@ void _workerEntry(
 
         if (cachedRegular == null || cachedBold == null) {
           throw Exception(
-            'تعذر تحميل خطوط PDF',
+            'Failed to load PDF fonts',
           );
         }
 
@@ -149,7 +149,7 @@ void _workerEntry(
   );
 }
 
-/// مولد ملفات PDF للاستبيانات والاستمارات.
+/// PDF file generator for questionnaires and forms.
 class FormPdfGenerator {
   static const _uuid = Uuid();
 
@@ -172,7 +172,7 @@ class FormPdfGenerator {
   }) async {
     final sw = Stopwatch()..start();
 
-    /// تحميل الخطوط مرة واحدة فقط
+    /// Load the fonts only once
     _regularFontBytesCache ??= (await rootBundle.load(
       'assets/fonts/NotoSansArabic-Regular.ttf',
     ))
@@ -186,7 +186,7 @@ class FormPdfGenerator {
         .asUint8List();
 
     debugPrint(
-      '⏱ [PDF] تحميل بايتات الخط: '
+      '⏱ [PDF] Loading font bytes: '
       '${sw.elapsedMilliseconds}ms',
     );
 
@@ -214,7 +214,7 @@ class FormPdfGenerator {
     );
 
     debugPrint(
-      '⏱ [PDF] بناء المستند: '
+      '⏱ [PDF] Building document: '
       '${sw.elapsedMilliseconds}ms',
     );
 
@@ -248,7 +248,7 @@ class FormPdfGenerator {
     );
 
     debugPrint(
-      '⏱ [PDF] حفظ الملف: '
+      '⏱ [PDF] Saving file: '
       '${sw.elapsedMilliseconds}ms',
     );
 
@@ -256,7 +256,7 @@ class FormPdfGenerator {
   }
 }
 
-/// تنظيف النص من الرموز التي قد لا يدعمها الخط.
+/// Sanitize text of characters the font may not support.
 String _sanitize(
   String? input,
 ) {
@@ -286,15 +286,15 @@ String _sanitize(
 }
 
 ///
-/// تقسيم النص الطويل إلى أجزاء قصيرة.
+/// Split long text into short chunks.
 ///
-/// هذه أهم نقطة في الحل.
+/// This is the key point of the solution.
 ///
-/// بدل إعطاء مكتبة PDF نصًا واحدًا قد يصل ارتفاعه
-/// إلى 800 أو 900 بكسل، نقسمه مسبقًا إلى أجزاء
-/// صغيرة جدًا.
+/// Instead of giving the PDF library a single piece of text whose height
+/// might reach 800 or 900 pixels, we split it ahead of time into
+/// very small chunks.
 ///
-/// لا نحذف أي حرف.
+/// We don't drop any character.
 List<String> _splitLongText(
   String text, {
   int maxChars = 500,
@@ -307,7 +307,7 @@ List<String> _splitLongText(
 
   final result = <String>[];
 
-  /// نحافظ على الأسطر الأصلية قدر الإمكان.
+  /// We keep the original lines as much as possible.
   final paragraphs = clean.split(RegExp(r'\r?\n'));
 
   for (final paragraph in paragraphs) {
@@ -318,14 +318,14 @@ List<String> _splitLongText(
       continue;
     }
 
-    /// إذا كان السطر قصيرًا، نضيفه مباشرة.
+    /// If the line is short, add it directly.
     if (line.length <= maxChars) {
       result.add(line);
       continue;
     }
 
-    /// إذا كان السطر طويلًا جدًا،
-    /// نقسمه على المسافات حتى لا نقطع الكلمات.
+    /// If the line is too long,
+    /// split it on spaces so we don't cut words.
     var remaining = line;
 
     while (remaining.length > maxChars) {
@@ -334,8 +334,8 @@ List<String> _splitLongText(
         maxChars,
       );
 
-      /// في حال عدم وجود مسافة،
-      /// نقطع عند الحد حتى لا يبقى Widget ضخم.
+      /// If there is no space,
+      /// cut at the limit so no oversized Widget remains.
       if (cut <= 0) {
         cut = maxChars;
       }
@@ -357,9 +357,9 @@ List<String> _splitLongText(
   return result;
 }
 
-/// تحويل النص الطويل إلى Widgets صغيرة.
+/// Convert long text into small Widgets.
 ///
-/// كل Widget صغير بما يكفي حتى لا يعطي:
+/// Each Widget is small enough to avoid:
 /// Widget won't fit into the page
 List<pw.Widget> _longTextWidgets(
   String text, {
@@ -388,8 +388,8 @@ List<pw.Widget> _longTextWidgets(
     widgets.add(
       pw.Text(
         part,
-        textDirection: pw.TextDirection.rtl,
-        textAlign: pw.TextAlign.right,
+        textDirection: pw.TextDirection.ltr,
+        textAlign: pw.TextAlign.left,
         softWrap: true,
         style: pw.TextStyle(
           fontSize: fontSize,
@@ -408,7 +408,7 @@ List<pw.Widget> _longTextWidgets(
   return widgets;
 }
 
-/// بناء PDF.
+/// Build the PDF.
 Future<Uint8List> _buildPdfBytes(
   _PdfBuildParams params,
   pw.Font arabicFont,
@@ -443,10 +443,10 @@ Future<Uint8List> _buildPdfBytes(
 
       theme: theme,
 
-      textDirection: pw.TextDirection.rtl,
+      textDirection: pw.TextDirection.ltr,
 
-      /// نسمح بعدد كبير جدًا من الصفحات.
-      /// عدد الصفحات لا يهم، المهم عدم فقدان أي محتوى.
+      /// We allow a very large number of pages.
+      /// The page count doesn't matter, what matters is not losing any content.
       maxPages: 1000,
 
       header: (context) {
@@ -456,7 +456,7 @@ Future<Uint8List> _buildPdfBytes(
             children: [
               pw.Text(
                 'hero pet',
-                textDirection: pw.TextDirection.rtl,
+                textDirection: pw.TextDirection.ltr,
                 textAlign: pw.TextAlign.center,
                 style: pw.TextStyle(
                   fontSize: 22,
@@ -470,7 +470,7 @@ Future<Uint8List> _buildPdfBytes(
                 _sanitize(
                   params.templateName,
                 ),
-                textDirection: pw.TextDirection.rtl,
+                textDirection: pw.TextDirection.ltr,
                 textAlign: pw.TextAlign.center,
                 style: pw.TextStyle(
                   fontSize: 16,
@@ -484,7 +484,7 @@ Future<Uint8List> _buildPdfBytes(
                 _sanitize(
                   params.serviceTypeLabel,
                 ),
-                textDirection: pw.TextDirection.rtl,
+                textDirection: pw.TextDirection.ltr,
                 textAlign: pw.TextAlign.center,
                 style: const pw.TextStyle(
                   fontSize: 12,
@@ -505,7 +505,7 @@ Future<Uint8List> _buildPdfBytes(
           children: [
             pw.Text(
               'hero pet',
-              textDirection: pw.TextDirection.rtl,
+              textDirection: pw.TextDirection.ltr,
               textAlign: pw.TextAlign.center,
               style: pw.TextStyle(
                 fontSize: 11,
@@ -527,8 +527,8 @@ Future<Uint8List> _buildPdfBytes(
         return pw.Align(
           alignment: pw.Alignment.center,
           child: pw.Text(
-            'صفحة ${context.pageNumber} من ${context.pagesCount}',
-            textDirection: pw.TextDirection.rtl,
+            'Page ${context.pageNumber} of ${context.pagesCount}',
+            textDirection: pw.TextDirection.ltr,
             style: const pw.TextStyle(
               fontSize: 9,
               color: PdfColors.grey700,
@@ -541,25 +541,25 @@ Future<Uint8List> _buildPdfBytes(
         final widgets = <pw.Widget>[];
 
         // ============================================================
-        // بيانات العميل والأليف
+        // Client & pet information
         // ============================================================
 
         widgets.add(
           _sectionTitle(
-            'بيانات العميل والأليف',
+            'Client & Pet Information',
           ),
         );
 
         widgets.add(
           _row(
-            'اسم العميل',
+            'Client Name',
             params.clientName,
           ),
         );
 
         widgets.add(
           _row(
-            'رقم الجوال',
+            'Phone Number',
             params.clientPhone,
           ),
         );
@@ -567,7 +567,7 @@ Future<Uint8List> _buildPdfBytes(
         if (params.civilId != null && params.civilId!.trim().isNotEmpty) {
           widgets.add(
             _row(
-              'رقم الهوية / الإقامة',
+              'ID / Residency Number',
               params.civilId!,
             ),
           );
@@ -576,7 +576,7 @@ Future<Uint8List> _buildPdfBytes(
         if (params.petName != null && params.petName!.trim().isNotEmpty) {
           widgets.add(
             _row(
-              'اسم الأليف',
+              'Pet Name',
               params.petName!,
             ),
           );
@@ -584,7 +584,7 @@ Future<Uint8List> _buildPdfBytes(
 
         widgets.add(
           _row(
-            'تاريخ ووقت الاستمارة',
+            'Form Date & Time',
             params.submittedAt,
           ),
         );
@@ -592,7 +592,7 @@ Future<Uint8List> _buildPdfBytes(
         if (params.staffName != null && params.staffName!.trim().isNotEmpty) {
           widgets.add(
             _row(
-              'الموظف المستلم',
+              'Receiving Staff Member',
               params.staffName!,
             ),
           );
@@ -605,17 +605,17 @@ Future<Uint8List> _buildPdfBytes(
         );
 
         // ============================================================
-        // الشروط والأحكام
+        // Terms & conditions
         // ============================================================
 
         if (params.termsText != null && params.termsText!.trim().isNotEmpty) {
           widgets.add(
             _sectionTitle(
-              'الشروط والأحكام',
+              'Terms & Conditions',
             ),
           );
 
-          /// نقسم الشروط يدويًا.
+          /// Split the terms manually.
           widgets.addAll(
             _longTextWidgets(
               params.termsText!,
@@ -634,10 +634,10 @@ Future<Uint8List> _buildPdfBytes(
           widgets.add(
             pw.Text(
               params.termsAccepted
-                  ? 'تمت الموافقة على الشروط والأحكام'
-                  : 'لم تتم الموافقة على الشروط والأحكام',
-              textDirection: pw.TextDirection.rtl,
-              textAlign: pw.TextAlign.right,
+                  ? 'Terms and conditions accepted'
+                  : 'Terms and conditions not accepted',
+              textDirection: pw.TextDirection.ltr,
+              textAlign: pw.TextAlign.left,
               style: pw.TextStyle(
                 fontSize: 10.5,
                 fontWeight: pw.FontWeight.bold,
@@ -653,13 +653,13 @@ Future<Uint8List> _buildPdfBytes(
         }
 
         // ============================================================
-        // البنود والإجابات
+        // Questions & answers
         // ============================================================
 
         if (params.answers.isNotEmpty) {
           widgets.add(
             _sectionTitle(
-              'البنود والإجابات',
+              'Questions & Answers',
             ),
           );
 
@@ -668,12 +668,12 @@ Future<Uint8List> _buildPdfBytes(
 
             final value = answer['value'] ?? '';
 
-            // السؤال
+            // Question
             widgets.add(
               pw.Text(
                 _sanitize(label),
-                textDirection: pw.TextDirection.rtl,
-                textAlign: pw.TextAlign.right,
+                textDirection: pw.TextDirection.ltr,
+                textAlign: pw.TextAlign.left,
                 softWrap: true,
                 style: pw.TextStyle(
                   fontSize: 10.5,
@@ -688,13 +688,13 @@ Future<Uint8List> _buildPdfBytes(
               ),
             );
 
-            // الإجابة
+            // Answer
             if (value.trim().isEmpty) {
               widgets.add(
                 pw.Text(
                   '—',
-                  textDirection: pw.TextDirection.rtl,
-                  textAlign: pw.TextAlign.right,
+                  textDirection: pw.TextDirection.ltr,
+                  textAlign: pw.TextAlign.left,
                   style: const pw.TextStyle(
                     fontSize: 10.5,
                   ),
@@ -726,7 +726,7 @@ Future<Uint8List> _buildPdfBytes(
         }
 
         // ============================================================
-        // التوقيع
+        // Signature
         // ============================================================
 
         widgets.add(
@@ -737,9 +737,9 @@ Future<Uint8List> _buildPdfBytes(
 
         widgets.add(
           pw.Text(
-            'توقيع العميل:',
-            textDirection: pw.TextDirection.rtl,
-            textAlign: pw.TextAlign.right,
+            'Client Signature:',
+            textDirection: pw.TextDirection.ltr,
+            textAlign: pw.TextAlign.left,
             style: pw.TextStyle(
               fontSize: 11,
               fontWeight: pw.FontWeight.bold,
@@ -753,9 +753,9 @@ Future<Uint8List> _buildPdfBytes(
           ),
         );
 
-        /// التوقيع حجمه ثابت وصغير.
-        /// إذا لم يتسع في الصفحة، MultiPage ينقله
-        /// حسب المساحة المتبقية.
+        /// The signature has a fixed, small size.
+        /// If it doesn't fit on the page, MultiPage moves it
+        /// according to the remaining space.
         widgets.add(
           pw.Container(
             width: 220,
@@ -779,7 +779,7 @@ Future<Uint8List> _buildPdfBytes(
   );
 
   debugPrint(
-    '⏱ [PDF/Worker] بناء تعريف الصفحات: '
+    '⏱ [PDF/Worker] Building page definitions: '
     '${sw.elapsedMilliseconds}ms',
   );
 
@@ -795,7 +795,7 @@ Future<Uint8List> _buildPdfBytes(
   return bytes;
 }
 
-/// عنوان قسم.
+/// Section title.
 pw.Widget _sectionTitle(
   String title,
 ) {
@@ -817,8 +817,8 @@ pw.Widget _sectionTitle(
     ),
     child: pw.Text(
       _sanitize(title),
-      textDirection: pw.TextDirection.rtl,
-      textAlign: pw.TextAlign.right,
+      textDirection: pw.TextDirection.ltr,
+      textAlign: pw.TextAlign.left,
       style: pw.TextStyle(
         fontSize: 12,
         fontWeight: pw.FontWeight.bold,
@@ -827,7 +827,7 @@ pw.Widget _sectionTitle(
   );
 }
 
-/// صف بيانات العميل.
+/// A client data row.
 pw.Widget _row(
   String label,
   String value,
@@ -841,8 +841,8 @@ pw.Widget _row(
       vertical: 2.5,
     ),
     child: pw.RichText(
-      textDirection: pw.TextDirection.rtl,
-      textAlign: pw.TextAlign.right,
+      textDirection: pw.TextDirection.ltr,
+      textAlign: pw.TextAlign.left,
       softWrap: true,
       text: pw.TextSpan(
         children: [

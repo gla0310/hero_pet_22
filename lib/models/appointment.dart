@@ -5,7 +5,7 @@ class Appointment {
   final String time; // HH:mm
   final String reason;
   final String? notes;
-  final String status; // من AppointmentStatus
+  final String status; // From AppointmentStatus
 
   Appointment({
     this.id,
@@ -14,7 +14,7 @@ class Appointment {
     required this.time,
     required this.reason,
     this.notes,
-    this.status = 'بانتظار',
+    this.status = 'Pending',
   });
 
   Map<String, dynamic> toMap() {
@@ -37,7 +37,7 @@ class Appointment {
       time: map['time'] as String,
       reason: (map['reason'] as String?) ?? '',
       notes: map['notes'] as String?,
-      status: (map['status'] as String?) ?? 'بانتظار',
+      status: (map['status'] as String?) ?? 'Pending',
     );
   }
 

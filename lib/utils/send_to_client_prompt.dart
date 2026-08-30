@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import '../core/app_colors.dart';
 import 'whatsapp_helper.dart';
 
-/// يعرض للموظف مباشرة بعد اعتماد تسجيل الدخول/الخروج خانة "إرسال للعميل"
-/// مع نص الرسالة الجاهزة - لا تُرسل تلقائياً، الموظف هو من يقرر.
+/// Shows staff, right after confirming check-in/check-out, a "send to client"
+/// box with the ready-made message text - it is not sent automatically, staff decide.
 class SendToClientPrompt {
   static Future<void> show({
     required BuildContext context,
@@ -26,7 +26,7 @@ class SendToClientPrompt {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('إرسال للعميل', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const Text('Send to Client', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             const SizedBox(height: 12),
             Container(
               width: double.infinity,
@@ -41,13 +41,13 @@ class SendToClientPrompt {
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(backgroundColor: AppColors.success, minimumSize: const Size(0, 48)),
                     icon: const Icon(Icons.chat),
-                    label: const Text('إرسال عبر واتساب'),
+                    label: const Text('Send via WhatsApp'),
                     onPressed: () async {
                       final result = await WhatsAppHelper.openWhatsAppWithMessage(phone: phone, message: message);
                       if (!ctx.mounted) return;
                       if (result == WhatsAppOpenResult.notInstalled) {
                         ScaffoldMessenger.of(ctx).showSnackBar(
-                          const SnackBar(content: Text('تعذّر فتح واتساب. يمكنك نسخ الرسالة وإرسالها يدوياً.')),
+                          const SnackBar(content: Text('Could not open WhatsApp. You can copy the message and send it manually.')),
                         );
                       } else {
                         Navigator.pop(ctx);
@@ -64,7 +64,7 @@ class SendToClientPrompt {
                     onPressed: () async {
                       await Clipboard.setData(ClipboardData(text: message));
                       if (!ctx.mounted) return;
-                      ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('تم نسخ الرسالة')));
+                      ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Message copied')));
                     },
                     child: const Icon(Icons.copy, size: 20),
                   ),
@@ -74,7 +74,7 @@ class SendToClientPrompt {
             const SizedBox(height: 8),
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('تخطي'),
+              child: const Text('Skip'),
             ),
           ],
         ),

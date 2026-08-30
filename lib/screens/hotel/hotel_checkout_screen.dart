@@ -11,8 +11,8 @@ import '../../utils/whatsapp_helper.dart';
 import '../../utils/send_to_client_prompt.dart';
 import '../forms/fill_form_screen.dart';
 
-/// نفس منطق شاشة تسجيل الخروج الرئيسية، تُستخدم من داخل "المتواجدون حالياً".
-/// إذا وُجدت استمارة إلكترونية نشطة لخروج هذا النوع من الفندقة تظهر مباشرة.
+/// Same logic as the main checkout screen, used from within "Currently Present".
+/// If an active electronic form exists for this boarding type's checkout, it appears immediately.
 class HotelCheckoutScreen extends StatefulWidget {
   final Admission admission;
   final String petName;
@@ -87,12 +87,12 @@ class _HotelCheckoutScreenState extends State<HotelCheckoutScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('التقاط صورة عقد الاستلام'),
+              title: const Text('Take a photo of the pickup contract'),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('اختيار من المعرض'),
+              title: const Text('Choose from Gallery'),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
           ],
@@ -121,10 +121,10 @@ class _HotelCheckoutScreenState extends State<HotelCheckoutScreen> {
     setState(() => _saving = false);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تم تسجيل خروج "${widget.petName}" من الفندقة')),
+      SnackBar(content: Text('"${widget.petName}" checked out of the hotel')),
     );
 
-    // نعرض للموظف مباشرة خانة "إرسال للعميل" (لا تُرسل تلقائياً)
+    // We show the staff member the "send to client" option directly (it is not sent automatically)
     final pet = await DBHelper.instance.getPetById(widget.admission.petId);
     final client = pet != null ? await DBHelper.instance.getClientById(pet.clientId) : null;
     if (mounted && client != null) {
@@ -146,7 +146,7 @@ class _HotelCheckoutScreenState extends State<HotelCheckoutScreen> {
   Future<void> _checkout() async {
     if (_receiptImagePath == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('صورة عقد الاستلام إجبارية')),
+        const SnackBar(content: Text('A pickup contract photo is required')),
       );
       return;
     }
@@ -157,28 +157,28 @@ class _HotelCheckoutScreenState extends State<HotelCheckoutScreen> {
   Widget build(BuildContext context) {
     if (_loadingTemplate || _activeTemplate != null) {
       return Scaffold(
-        appBar: AppBar(title: Text('تسجيل خروج — ${widget.petName}')),
+        appBar: AppBar(title: Text('Checkout — ${widget.petName}')),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text('تسجيل خروج — ${widget.petName}')),
+      appBar: AppBar(title: Text('Checkout — ${widget.petName}')),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: ListView(
           children: [
-            Text('تاريخ ووقت الخروج: ${DateHelper.nowDateTime()}', style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text('Checkout Date & Time: ${DateHelper.nowDateTime()}', style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
             TextField(
               controller: _notesController,
-              decoration: const InputDecoration(labelText: 'ملاحظات', prefixIcon: Icon(Icons.notes)),
+              decoration: const InputDecoration(labelText: 'Notes', prefixIcon: Icon(Icons.notes)),
               maxLines: 3,
             ),
             const SizedBox(height: 16),
             OutlinedButton.icon(
               icon: const Icon(Icons.camera_alt),
-              label: Text(_receiptImagePath == null ? 'التقاط صورة عقد الاستلام *' : 'تم اختيار صورة عقد الاستلام ✓'),
+              label: Text(_receiptImagePath == null ? 'Take Pickup Contract Photo *' : 'Pickup contract photo selected ✓'),
               onPressed: _pickReceiptImage,
             ),
             if (_receiptImagePath != null) ...[
@@ -193,7 +193,7 @@ class _HotelCheckoutScreenState extends State<HotelCheckoutScreen> {
               icon: _saving
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                   : const Icon(Icons.logout),
-              label: Text(_saving ? 'جاري الحفظ...' : 'تأكيد تسجيل الخروج'),
+              label: Text(_saving ? 'Saving...' : 'Confirm Checkout'),
               onPressed: _saving ? null : _checkout,
             ),
           ],

@@ -10,9 +10,9 @@ import 'all_clients_screen.dart';
 import 'all_checkins_screen.dart';
 import 'all_deliveries_screen.dart';
 
-/// يفتح ملف أليفة معيّنة (بمعرّفها) انطلاقاً من رقم جوال عميلها - يُستخدم من
-/// أقسام لوحة المعلومات (آخر الدخولات/الخروجات) لفتح نفس شاشة ملف الأليفة
-/// المستخدمة في بقية التطبيق.
+/// Opens a specific pet's profile (by its ID) starting from its client's phone
+/// number - used by the dashboard sections (recent check-ins/check-outs) to
+/// open the same pet profile screen used throughout the rest of the app.
 Future<void> _openPetProfile(BuildContext context, String clientPhone, int petId) async {
   final profile = await DBHelper.instance.getClientFullProfile(clientPhone);
   if (profile == null || !context.mounted) return;
@@ -39,7 +39,7 @@ Future<void> _openPetProfile(BuildContext context, String clientPhone, int petId
   );
 }
 
-/// بطاقة قسم عامة تُستخدم لكل قسم من أقسام لوحة المعلومات
+/// A generic section card used for each dashboard section
 class DashboardSectionCard extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -69,7 +69,7 @@ class DashboardSectionCard extends StatelessWidget {
                 Expanded(
                   child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 ),
-                TextButton(onPressed: onViewAll, child: const Text('عرض الكل')),
+                TextButton(onPressed: onViewAll, child: const Text('View All')),
               ],
             ),
             const Divider(),
@@ -81,7 +81,7 @@ class DashboardSectionCard extends StatelessWidget {
   }
 }
 
-/// قسم "آخر العملاء الذين تمت إضافتهم"
+/// "Recently added clients" section
 class RecentClientsSection extends StatelessWidget {
   const RecentClientsSection({super.key});
 
@@ -102,7 +102,7 @@ class RecentClientsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DashboardSectionCard(
-      title: 'آخر العملاء الذين تمت إضافتهم',
+      title: 'Recently Added Clients',
       icon: Icons.person_add_alt_1,
       onViewAll: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AllClientsScreen())),
       child: FutureBuilder<List<Map<String, dynamic>>>(
@@ -110,7 +110,7 @@ class RecentClientsSection extends StatelessWidget {
         builder: (context, snapshot) {
           if (!snapshot.hasData) return const Padding(padding: EdgeInsets.all(12), child: LinearProgressIndicator());
           final items = snapshot.data!;
-          if (items.isEmpty) return const Text('لا يوجد عملاء بعد');
+          if (items.isEmpty) return const Text('No clients yet');
           return Column(
             children: items.map((item) {
               final client = Client.fromMap(item);
@@ -119,7 +119,7 @@ class RecentClientsSection extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 leading: const CircleAvatar(child: Icon(Icons.person)),
                 title: Text(client.name),
-                subtitle: Text('${client.phone} — ${DateHelper.displayDate(client.createdAt)} — عدد الأليفات: $petCount'),
+                subtitle: Text('${client.phone} — ${DateHelper.displayDate(client.createdAt)} — Pets: $petCount'),
                 onTap: () => _openClient(context, client.phone),
               );
             }).toList(),
@@ -130,7 +130,7 @@ class RecentClientsSection extends StatelessWidget {
   }
 }
 
-/// قسم "آخر دخولات الفندقة"
+/// "Recent hotel check-ins" section
 class RecentCheckinsSection extends StatelessWidget {
   const RecentCheckinsSection({super.key});
 
@@ -142,7 +142,7 @@ class RecentCheckinsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DashboardSectionCard(
-      title: 'آخر دخولات الفندقة',
+      title: 'Recent Hotel Check-ins',
       icon: Icons.login,
       onViewAll: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AllCheckinsScreen())),
       child: FutureBuilder<List<Map<String, dynamic>>>(
@@ -150,14 +150,14 @@ class RecentCheckinsSection extends StatelessWidget {
         builder: (context, snapshot) {
           if (!snapshot.hasData) return const Padding(padding: EdgeInsets.all(12), child: LinearProgressIndicator());
           final items = snapshot.data!;
-          if (items.isEmpty) return const Text('لا يوجد دخولات بعد');
+          if (items.isEmpty) return const Text('No check-ins yet');
           return Column(
             children: items.map((item) {
               return ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.pets, color: AppColors.statusInHotel),
                 title: Text(item['pet_name']),
-                subtitle: Text('${item['client_name']} — ${item['client_phone']}\n${_kindLabel(item)} — دخول: ${item['entry_date']}'),
+                subtitle: Text('${item['client_name']} — ${item['client_phone']}\n${_kindLabel(item)} — Check-in: ${item['entry_date']}'),
                 isThreeLine: true,
                 onTap: () => _openPetProfile(context, item['client_phone'], item['pet_id'] as int),
               );
@@ -169,7 +169,7 @@ class RecentCheckinsSection extends StatelessWidget {
   }
 }
 
-/// قسم "آخر خروجات الفندقة"
+/// "Recent hotel check-outs" section
 class RecentDeliveriesSection extends StatelessWidget {
   const RecentDeliveriesSection({super.key});
 
@@ -181,7 +181,7 @@ class RecentDeliveriesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DashboardSectionCard(
-      title: 'آخر خروجات الفندقة',
+      title: 'Recent Hotel Check-outs',
       icon: Icons.logout,
       onViewAll: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AllDeliveriesScreen())),
       child: FutureBuilder<List<Map<String, dynamic>>>(
@@ -189,7 +189,7 @@ class RecentDeliveriesSection extends StatelessWidget {
         builder: (context, snapshot) {
           if (!snapshot.hasData) return const Padding(padding: EdgeInsets.all(12), child: LinearProgressIndicator());
           final items = snapshot.data!;
-          if (items.isEmpty) return const Text('لا يوجد خروجات بعد');
+          if (items.isEmpty) return const Text('No check-outs yet');
           return Column(
             children: items.map((item) {
               return ListTile(
@@ -197,7 +197,7 @@ class RecentDeliveriesSection extends StatelessWidget {
                 leading: const Icon(Icons.check_circle, color: AppColors.textLight),
                 title: Text(item['pet_name']),
                 subtitle: Text(
-                  '${item['client_name']} — ${_kindLabel(item)}\nخروج: ${item['actual_exit_date'] ?? '-'} — الحالة: ${item['status']}',
+                  '${item['client_name']} — ${_kindLabel(item)}\nCheck-out: ${item['actual_exit_date'] ?? '-'} — Status: ${item['status']}',
                 ),
                 isThreeLine: true,
                 onTap: () => _openPetProfile(context, item['client_phone'], item['pet_id'] as int),
@@ -210,7 +210,7 @@ class RecentDeliveriesSection extends StatelessWidget {
   }
 }
 
-/// شريط تنبيه للحالات المتأخرة عن الخروج (يظهر أعلى لوحة المعلومات إن وُجدت حالات متأخرة)
+/// Alert banner for overdue check-outs (shown at the top of the dashboard when overdue cases exist)
 class OverdueBanner extends StatelessWidget {
   const OverdueBanner({super.key});
 
@@ -236,7 +236,7 @@ class OverdueBanner extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'يوجد $count حالة متأخرة عن الخروج — راجع "المتواجدون حالياً"',
+                  'There are $count overdue check-outs — check "Currently Present"',
                   style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold),
                 ),
               ),

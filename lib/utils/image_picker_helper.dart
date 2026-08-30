@@ -4,14 +4,14 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
-/// أداة موحّدة لالتقاط الصور (من الكاميرا أو المعرض) وحفظها داخل
-/// مجلد التطبيق الخاص، مع إرجاع المسار لحفظه في SQLite.
+/// A unified tool for capturing images (from camera or gallery) and saving them
+/// inside the app's private folder, returning the path to store in SQLite.
 class ImagePickerHelper {
   static final ImagePicker _picker = ImagePicker();
   static const _uuid = Uuid();
 
-  /// يعرض للمستخدم اختيار المصدر (كاميرا أو معرض) ثم يحفظ الصورة
-  /// داخل مجلد images داخل مجلد بيانات التطبيق ويرجع المسار الكامل.
+  /// Shows the user a source picker (camera or gallery), then saves the image
+  /// inside the images folder within the app's data directory and returns the full path.
   static Future<String?> pickAndSaveImage({required ImageSource source}) async {
     final XFile? picked = await _picker.pickImage(source: source, imageQuality: 80);
     if (picked == null) return null;
@@ -30,9 +30,9 @@ class ImagePickerHelper {
     return savedPath;
   }
 
-  /// يحفظ بايتات صورة (مثل توقيع مُصدَّر كـ PNG) داخل مجلد images
-  /// الخاص بالتطبيق ويرجع المسار الكامل - يُستخدم مع بيانات لم تأتِ
-  /// من الكاميرا/المعرض مباشرة.
+  /// Saves image bytes (such as a signature exported as PNG) inside the app's
+  /// images folder and returns the full path - used with data that did not
+  /// come directly from the camera/gallery.
   static Future<String> saveBytesAsImage(List<int> bytes, {String prefix = 'image'}) async {
     final docsDir = await getApplicationDocumentsDirectory();
     final imagesDir = Directory(p.join(docsDir.path, 'images'));

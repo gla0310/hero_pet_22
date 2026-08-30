@@ -4,8 +4,8 @@ import '../../core/constants.dart';
 import '../../database/db_helper.dart';
 import 'edit_form_template_screen.dart';
 
-/// شاشة "إدارة الاستمارات" - تسمح للمسؤول بإنشاء/تعديل/حذف قوالب
-/// الاستمارات الإلكترونية وتحديد نوع الخدمة التي تظهر عندها كل استمارة.
+/// "Manage Forms" screen - allows the admin to create/edit/delete
+/// electronic form templates and set which service type each form appears for.
 class ManageFormsScreen extends StatefulWidget {
   const ManageFormsScreen({super.key});
 
@@ -30,11 +30,11 @@ class _ManageFormsScreenState extends State<ManageFormsScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('حذف الاستمارة'),
-        content: Text('هل تريد حذف قالب "$name"؟ الاستمارات المُعتمدة سابقاً باستخدامه تبقى محفوظة.'),
+        title: const Text('Delete Form'),
+        content: Text('Do you want to delete the "$name" template? Submissions previously made with it will remain saved.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('حذف', style: TextStyle(color: Colors.red))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete', style: TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -47,7 +47,7 @@ class _ManageFormsScreenState extends State<ManageFormsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('إدارة الاستمارات')),
+      appBar: AppBar(title: const Text('Manage Forms')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           final created = await Navigator.push(
@@ -57,7 +57,7 @@ class _ManageFormsScreenState extends State<ManageFormsScreen> {
           if (created == true) setState(_reload);
         },
         icon: const Icon(Icons.add),
-        label: const Text('استمارة جديدة'),
+        label: const Text('New Form'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -71,8 +71,8 @@ class _ManageFormsScreenState extends State<ManageFormsScreen> {
               child: Padding(
                 padding: EdgeInsets.all(24),
                 child: Text(
-                  'لا يوجد استمارات بعد. اضغط "استمارة جديدة" لإنشاء أول استمارة إلكترونية '
-                  '(مثل استمارة دخول فندقة أو استمارة إجراء طبي).',
+                  'No forms yet. Tap "New Form" to create your first electronic form '
+                  '(such as a boarding check-in form or a medical procedure form).',
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -89,7 +89,7 @@ class _ManageFormsScreenState extends State<ManageFormsScreen> {
                   leading: Icon(Icons.description, color: active ? AppColors.primary : AppColors.textLight),
                   title: Text(t['name']),
                   subtitle: Text(
-                    '${FormServiceType.label(t['service_type'])} — ${active ? 'مفعّلة' : 'موقوفة'}',
+                    '${FormServiceType.label(t['service_type'])} — ${active ? 'Active' : 'Disabled'}',
                     style: TextStyle(color: active ? AppColors.success : AppColors.textLight),
                   ),
                   trailing: IconButton(

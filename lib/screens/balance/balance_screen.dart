@@ -3,7 +3,7 @@ import '../../core/app_colors.dart';
 import '../../database/db_helper.dart';
 import '../../models/client.dart';
 
-/// شاشة "رصيد" — إضافة/تعديل رصيد أي عميل، وعرض كل العملاء الذين لديهم رصيد فعلي فقط
+/// "Balance" screen — add/edit any client's balance, and show only clients who actually have a balance
 class BalanceScreen extends StatefulWidget {
   final String? prefilledPhone;
 
@@ -66,30 +66,30 @@ class _BalanceScreenState extends State<BalanceScreen> {
     final result = await showDialog<double>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('رصيد ${client.name}'),
+        title: Text('${client.name}\'s Balance'),
         content: TextField(
           controller: controller,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
           decoration: const InputDecoration(
-            labelText: 'قيمة الرصيد',
-            helperText: 'اكتب القيمة الجديدة الكاملة للرصيد (ضع 0 لتصفيره)',
+            labelText: 'Balance Amount',
+            helperText: 'Enter the new full balance amount (enter 0 to reset it)',
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               final value = double.tryParse(controller.text.trim());
               if (value == null) {
                 ScaffoldMessenger.of(ctx).showSnackBar(
-                  const SnackBar(content: Text('الرجاء إدخال رقم صحيح')),
+                  const SnackBar(content: Text('Please enter a valid number')),
                 );
                 return;
               }
               Navigator.pop(ctx, value);
             },
-            child: const Text('حفظ'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -100,11 +100,11 @@ class _BalanceScreenState extends State<BalanceScreen> {
     await DBHelper.instance.setClientBalance(client.id!, result);
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تحديث الرصيد')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Balance updated')));
 
     setState(() {
       _reload();
-      // نحدّث نتائج البحث الحالية أيضاً (إن وجدت) لتعكس القيمة الجديدة فوراً
+      // Also update the current search results (if any) to reflect the new value immediately
       _searchResults = _searchResults
           .map((c) => c.id == client.id ? c.copyWith(balance: result) : c)
           .toList();
@@ -119,7 +119,7 @@ class _BalanceScreenState extends State<BalanceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('رصيد العملاء')),
+      appBar: AppBar(title: const Text('Client Balances')),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -132,7 +132,7 @@ class _BalanceScreenState extends State<BalanceScreen> {
                     controller: _searchController,
                     textInputAction: TextInputAction.search,
                     decoration: const InputDecoration(
-                      labelText: 'ابحث برقم الجوال أو اسم العميل',
+                      labelText: 'Search by phone number or client name',
                       prefixIcon: Icon(Icons.search),
                     ),
                     onSubmitted: (_) => _search(),
@@ -157,10 +157,10 @@ class _BalanceScreenState extends State<BalanceScreen> {
             if (_searched && _searchResults.isEmpty)
               const Padding(
                 padding: EdgeInsets.only(bottom: 12),
-                child: Text('لا يوجد عملاء مطابقين لبحثك', style: TextStyle(color: Colors.red)),
+                child: Text('No clients match your search', style: TextStyle(color: Colors.red)),
               ),
             if (_searchResults.isNotEmpty) ...[
-              const Text('نتائج البحث', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Search Results', style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
               ..._searchResults.map(
                 (c) => Card(
@@ -181,7 +181,7 @@ class _BalanceScreenState extends State<BalanceScreen> {
               ),
               const Divider(height: 30),
             ],
-            const Text('العملاء الذين لديهم رصيد حالياً', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Clients with a Current Balance', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
             Expanded(
               child: FutureBuilder<List<Client>>(
@@ -190,7 +190,7 @@ class _BalanceScreenState extends State<BalanceScreen> {
                   if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
                   final clients = snapshot.data!;
                   if (clients.isEmpty) {
-                    return const Center(child: Text('لا يوجد عملاء لديهم رصيد حالياً'));
+                    return const Center(child: Text('No clients currently have a balance'));
                   }
                   return ListView.builder(
                     itemCount: clients.length,

@@ -54,7 +54,7 @@ class _AllClientsScreenState extends State<AllClientsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('جميع العملاء')),
+      appBar: AppBar(title: const Text('All Clients')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -62,7 +62,7 @@ class _AllClientsScreenState extends State<AllClientsScreen> {
             TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                labelText: 'ابحث برقم الجوال أو اسم العميل',
+                labelText: 'Search by phone number or client name',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _query.isEmpty
                     ? null
@@ -79,11 +79,11 @@ class _AllClientsScreenState extends State<AllClientsScreen> {
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
                   final allItems = snapshot.data!;
-                  if (allItems.isEmpty) return const Center(child: Text('لا يوجد عملاء بعد'));
+                  if (allItems.isEmpty) return const Center(child: Text('No clients yet'));
 
                   final items = allItems.where((item) => _matches(Client.fromMap(item))).toList();
                   if (items.isEmpty) {
-                    return const Center(child: Text('لا يوجد عملاء مطابقين لبحثك'));
+                    return const Center(child: Text('No clients match your search'));
                   }
 
                   return ListView.builder(
@@ -96,7 +96,7 @@ class _AllClientsScreenState extends State<AllClientsScreen> {
                         child: ListTile(
                           leading: const CircleAvatar(child: Icon(Icons.person)),
                           title: Text(client.name),
-                          subtitle: Text('${client.phone} — ${DateHelper.displayDate(client.createdAt)} — عدد الأليفات: $petCount'),
+                          subtitle: Text('${client.phone} — ${DateHelper.displayDate(client.createdAt)} — Pets: $petCount'),
                           onTap: () => _openClient(context, client.phone),
                         ),
                       );

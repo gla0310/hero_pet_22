@@ -33,12 +33,12 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('التقاط صورة العقد بالكاميرا'),
+              title: const Text('Take a photo of the contract with the camera'),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('اختيار من المعرض'),
+              title: const Text('Choose from Gallery'),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
           ],
@@ -81,7 +81,7 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تم تسجيل دخول "${widget.petName}" إلى الفندقة')),
+      SnackBar(content: Text('"${widget.petName}" checked into the hotel')),
     );
 
     Navigator.pushAndRemoveUntil(
@@ -94,12 +94,12 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('فندقة — ${widget.petName}')),
+      appBar: AppBar(title: Text('Boarding — ${widget.petName}')),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: ListView(
           children: [
-            const Text('نوع الفندقة', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Boarding Type', style: TextStyle(fontWeight: FontWeight.bold)),
             RadioListTile<String>(
               title: const Text(BoardingType.normal),
               value: BoardingType.normal,
@@ -116,21 +116,21 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.calendar_today),
-              title: const Text('تاريخ الخروج المتوقع'),
-              subtitle: Text(_expectedExitDate != null ? DateHelper.formatDate(_expectedExitDate!) : 'اختر تاريخاً'),
+              title: const Text('Expected Exit Date'),
+              subtitle: Text(_expectedExitDate != null ? DateHelper.formatDate(_expectedExitDate!) : 'Select a date'),
               trailing: const Icon(Icons.edit),
               onTap: _pickExpectedExitDate,
             ),
             const Divider(),
             TextField(
               controller: _notesController,
-              decoration: const InputDecoration(labelText: 'ملاحظات', prefixIcon: Icon(Icons.notes)),
+              decoration: const InputDecoration(labelText: 'Notes', prefixIcon: Icon(Icons.notes)),
               maxLines: 3,
             ),
             const SizedBox(height: 16),
             OutlinedButton.icon(
               icon: const Icon(Icons.camera_alt),
-              label: Text(_contractImagePath == null ? 'التقاط صورة العقد' : 'تم اختيار صورة العقد ✓'),
+              label: Text(_contractImagePath == null ? 'Take Contract Photo' : 'Contract photo selected ✓'),
               onPressed: _pickContractImage,
             ),
             if (_contractImagePath != null) ...[
@@ -145,7 +145,7 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
               icon: _saving
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                   : const Icon(Icons.save),
-              label: Text(_saving ? 'جاري الحفظ...' : 'تسجيل الدخول للفندقة'),
+              label: Text(_saving ? 'Saving...' : 'Check In to Hotel'),
               onPressed: _saving ? null : _save,
             ),
           ],

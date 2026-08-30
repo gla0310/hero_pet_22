@@ -13,8 +13,9 @@ class AddVisitScreen extends StatefulWidget {
   final int petId;
   final String petName;
 
-  /// إذا فُتحت الزيارة من موعد تم "حضوره"، يُمرَّر رقم الموعد هنا لربط
-  /// الزيارة به مباشرة وتعبئة سبب الزيارة تلقائياً من سبب الموعد
+  /// If the visit was opened from an appointment marked "attended", the
+  /// appointment id is passed here to link the visit to it directly and
+  /// auto-fill the visit reason from the appointment reason
   final int? appointmentId;
   final String? appointmentReason;
 
@@ -39,7 +40,7 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
   final _recommendationsController = TextEditingController();
   bool _saving = false;
 
-  // بيانات الموعد القادم الاختياري
+  // Optional follow-up appointment data
   bool _addFollowUpAppointment = false;
   DateTime _appointmentDate = DateTime.now().add(const Duration(days: 7));
   TimeOfDay _appointmentTime = TimeOfDay.now();
@@ -47,11 +48,11 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
   final _appointmentOtherController = TextEditingController();
   final _appointmentNotesController = TextEditingController();
 
-  // رصيد العميل (يُعرض مباشرة أثناء الزيارة)
+  // Client balance (displayed directly during the visit)
   Client? _client;
   bool _loadingClient = true;
 
-  // باقة التطعيمات الخاصة بهذه الأليفة (تُحمَّل تلقائياً إن وجدت)
+  // This pet's vaccination package (loaded automatically if one exists)
   Map<String, dynamic>? _package;
   List<Map<String, dynamic>> _packageItems = [];
   bool _loadingPackage = true;
@@ -108,7 +109,7 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
 
   Future<void> _toggleVaccineItem(Map<String, dynamic> item) async {
     final given = (item['given'] as int) == 1;
-    // إذا كانت مُعطاة مسبقاً في زيارة سابقة، لا نسمح بإلغائها من هنا لتفادي فقد سجل الزيارة المرتبطة
+    // If it was already given in a previous visit, don't allow unchecking it here to avoid losing the linked visit record
     if (given && item['given_visit_id'] != null) return;
 
     await DBHelper.instance.setVaccineItemGiven(
@@ -149,7 +150,7 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
   Future<void> _save() async {
     setState(() => _saving = true);
 
-    // إذا كانت الزيارة نتيجة "حضور" موعد، نتأكد أن حالته "حضر"
+    // If the visit results from an appointment "attendance", make sure its status is "attended"
     if (widget.appointmentId != null) {
       await DBHelper.instance.updateAppointmentStatus(widget.appointmentId!, AppointmentStatus.attended);
     }
@@ -166,7 +167,7 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
     );
     final visitId = await DBHelper.instance.insertVisit(visit);
 
-    // نربط كل تطعيمة تم تعليمها الآن بهذه الزيارة (نضيف رقم الزيارة لمن كان مُعلّماً بدون ربط)
+    // Link every vaccine item that was just checked to this visit (add the visit id to any that were checked without a link)
     for (final item in _packageItems) {
       final given = (item['given'] as int) == 1;
       if (given && item['given_visit_id'] == null) {
@@ -179,7 +180,7 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
       }
     }
 
-    // إذا فعّل الموظف خيار "إضافة موعد قادم" ننشئ الموعد تلقائياً
+    // If the staff member enabled the "add follow-up appointment" option, create the appointment automatically
     if (_addFollowUpAppointment) {
       final reasonText = _appointmentReason == FollowUpReason.other
           ? (_appointmentOtherController.text.trim().isEmpty ? FollowUpReason.other : _appointmentOtherController.text.trim())
@@ -199,7 +200,7 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تم تسجيل زيارة "${widget.petName}"${_addFollowUpAppointment ? ' وحفظ الموعد القادم' : ''}')),
+      SnackBar(content: Text('Visit for "${widget.petName}" recorded${_addFollowUpAppointment ? ' and follow-up appointment saved' : ''}')),
     );
 
     Navigator.pushAndRemoveUntil(
@@ -217,11 +218,11 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('زيارة عيادة — ${widget.petName}')),
+      appBar: AppBar(title: Text('Clinic Visit — ${widget.petName}')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          // رصيد العميل - يظهر مباشرة دون الحاجة للانتقال لصفحة أخرى
+          // Client balance - shown directly without navigating to another page
           if (!_loadingClient && _client != null)
             Container(
               width: double.infinity,
@@ -237,16 +238,16 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
                   const Icon(Icons.account_balance_wallet, color: AppColors.warning),
                   const SizedBox(width: 10),
                   Text(
-                    'رصيد العميل: ${_formatBalance(_client!.balance)}',
+                    'Client balance: ${_formatBalance(_client!.balance)}',
                     style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.warning),
                   ),
                 ],
               ),
             ),
 
-          // باقة التطعيمات الخاصة بهذه الأليفة (إن وجدت) - تظهر تلقائياً
+          // This pet's vaccination package (if any) - shown automatically
           if (!_loadingPackage && _package != null) ...[
-            const Text('باقة التطعيمات الخاصة بهذه الأليفة', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('This Pet\'s Vaccination Package', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
             Wrap(
               spacing: 8,
@@ -264,7 +265,7 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
             ),
             const SizedBox(height: 6),
             const Text(
-              'اضغط على التطعيمة عند إعطائها الآن أثناء هذه الزيارة',
+              'Tap the vaccine when it is given now during this visit',
               style: TextStyle(fontSize: 12, color: AppColors.textLight),
             ),
             const Divider(height: 32),
@@ -273,13 +274,13 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.calendar_today),
-            title: const Text('تاريخ الزيارة'),
+            title: const Text('Visit Date'),
             subtitle: Text(DateHelper.formatDate(_visitDate)),
             trailing: const Icon(Icons.edit),
             onTap: _pickDate,
           ),
           const Divider(),
-          const Text('سبب الزيارة', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Visit Reason', style: TextStyle(fontWeight: FontWeight.bold)),
           ...VisitReason.all.map(
             (r) => RadioListTile<String>(
               title: Text(r),
@@ -292,7 +293,7 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
           TextField(
             controller: _descController,
             decoration: const InputDecoration(
-              labelText: 'الفحص / ملاحظات عامة',
+              labelText: 'Examination / General Notes',
               prefixIcon: Icon(Icons.notes),
             ),
             maxLines: 3,
@@ -301,7 +302,7 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
           TextField(
             controller: _diagnosisController,
             decoration: const InputDecoration(
-              labelText: 'التشخيص',
+              labelText: 'Diagnosis',
               prefixIcon: Icon(Icons.medical_information_outlined),
             ),
             maxLines: 3,
@@ -310,7 +311,7 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
           TextField(
             controller: _treatmentController,
             decoration: const InputDecoration(
-              labelText: 'العلاج',
+              labelText: 'Treatment',
               prefixIcon: Icon(Icons.medication_outlined),
             ),
             maxLines: 3,
@@ -319,7 +320,7 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
           TextField(
             controller: _recommendationsController,
             decoration: const InputDecoration(
-              labelText: 'التوصيات',
+              labelText: 'Recommendations',
               prefixIcon: Icon(Icons.lightbulb_outline),
             ),
             maxLines: 3,
@@ -328,14 +329,14 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
           CheckboxListTile(
             contentPadding: EdgeInsets.zero,
             value: _addFollowUpAppointment,
-            title: const Text('إضافة موعد قادم', style: TextStyle(fontWeight: FontWeight.bold)),
+            title: const Text('Add Follow-up Appointment', style: TextStyle(fontWeight: FontWeight.bold)),
             onChanged: (v) => setState(() => _addFollowUpAppointment = v ?? false),
           ),
           if (_addFollowUpAppointment) ...[
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.calendar_today),
-              title: const Text('تاريخ الموعد'),
+              title: const Text('Appointment Date'),
               subtitle: Text(DateHelper.formatDate(_appointmentDate)),
               trailing: const Icon(Icons.edit),
               onTap: _pickAppointmentDate,
@@ -343,13 +344,13 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.access_time),
-              title: const Text('الوقت'),
+              title: const Text('Time'),
               subtitle: Text(_appointmentTime.format(context)),
               trailing: const Icon(Icons.edit),
               onTap: _pickAppointmentTime,
             ),
             const SizedBox(height: 8),
-            const Text('سبب الموعد', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Appointment Reason', style: TextStyle(fontWeight: FontWeight.bold)),
             ...FollowUpReason.all.map(
               (r) => RadioListTile<String>(
                 title: Text(r),
@@ -363,13 +364,13 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: TextField(
                   controller: _appointmentOtherController,
-                  decoration: const InputDecoration(labelText: 'اكتب سبب الموعد'),
+                  decoration: const InputDecoration(labelText: 'Enter the appointment reason'),
                 ),
               ),
             TextField(
               controller: _appointmentNotesController,
               decoration: const InputDecoration(
-                labelText: 'ملاحظات الموعد القادم',
+                labelText: 'Follow-up Appointment Notes',
                 prefixIcon: Icon(Icons.notes),
               ),
               maxLines: 3,
@@ -380,7 +381,7 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
             icon: _saving
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                 : const Icon(Icons.save),
-            label: Text(_saving ? 'جاري الحفظ...' : 'حفظ الزيارة'),
+            label: Text(_saving ? 'Saving...' : 'Save Visit'),
             onPressed: _saving ? null : _save,
           ),
         ],

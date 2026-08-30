@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../database/db_helper.dart';
 import '../../models/client.dart';
 
-/// شاشة تعديل بيانات عميل موجود مسبقاً
+/// Screen for editing an existing client's information
 class EditClientScreen extends StatefulWidget {
   final Client client;
 
@@ -49,7 +49,7 @@ class _EditClientScreenState extends State<EditClientScreen> {
         setState(() => _saving = false);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('رقم الجوال مسجل مسبقاً لعميل آخر')),
+          const SnackBar(content: Text('This phone number is already registered to another client')),
         );
         return;
       }
@@ -65,14 +65,14 @@ class _EditClientScreenState extends State<EditClientScreen> {
 
     if (!mounted) return;
     setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ التعديلات')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Changes saved')));
     Navigator.pop(context, updated);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('تعديل بيانات العميل')),
+      appBar: AppBar(title: const Text('Edit Client Information')),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -82,32 +82,32 @@ class _EditClientScreenState extends State<EditClientScreen> {
               TextFormField(
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: 'رقم الجوال *', prefixIcon: Icon(Icons.phone)),
+                decoration: const InputDecoration(labelText: 'Phone Number *', prefixIcon: Icon(Icons.phone)),
                 validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'رقم الجوال إجباري';
-                  if (v.trim().length < 9) return 'رقم الجوال غير صحيح';
+                  if (v == null || v.trim().isEmpty) return 'Phone number is required';
+                  if (v.trim().length < 9) return 'Invalid phone number';
                   return null;
                 },
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'اسم العميل *', prefixIcon: Icon(Icons.person)),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'اسم العميل إجباري' : null,
+                decoration: const InputDecoration(labelText: 'Client Name *', prefixIcon: Icon(Icons.person)),
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Client name is required' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _civilIdController,
                 keyboardType: TextInputType.text,
                 decoration: const InputDecoration(
-                  labelText: 'السجل المدني / رقم الهوية / الإقامة (اختياري)',
+                  labelText: 'Civil Registry / National ID / Residency Number (optional)',
                   prefixIcon: Icon(Icons.badge_outlined),
                 ),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _notesController,
-                decoration: const InputDecoration(labelText: 'ملاحظات', prefixIcon: Icon(Icons.notes)),
+                decoration: const InputDecoration(labelText: 'Notes', prefixIcon: Icon(Icons.notes)),
                 maxLines: 3,
               ),
               const SizedBox(height: 30),
@@ -116,7 +116,7 @@ class _EditClientScreenState extends State<EditClientScreen> {
                 icon: _saving
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                     : const Icon(Icons.save),
-                label: Text(_saving ? 'جاري الحفظ...' : 'حفظ التعديلات'),
+                label: Text(_saving ? 'Saving...' : 'Save Changes'),
               ),
             ],
           ),

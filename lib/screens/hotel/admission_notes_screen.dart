@@ -6,8 +6,8 @@ import '../../models/admission.dart';
 import '../../models/admission_note.dart';
 import '../../utils/date_helper.dart';
 
-/// تتيح إضافة/تعديل/حذف ملاحظات للأليفة أثناء وجودها في الفندقة أو العيادة
-/// دون أن يُعتبر ذلك تسجيل خروج لها.
+/// Allows adding/editing/deleting notes for a pet while it is in the hotel
+/// or clinic, without this being considered a checkout for it.
 class AdmissionNotesScreen extends StatefulWidget {
   final Admission admission;
   final String petName;
@@ -36,18 +36,18 @@ class _AdmissionNotesScreenState extends State<AdmissionNotesScreen> {
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(existing == null ? 'إضافة ملاحظة' : 'تعديل الملاحظة'),
+        title: Text(existing == null ? 'Add Note' : 'Edit Note'),
         content: TextField(
           controller: controller,
           autofocus: true,
           maxLines: 4,
-          decoration: const InputDecoration(hintText: 'اكتب الملاحظة هنا...'),
+          decoration: const InputDecoration(hintText: 'Write the note here...'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: const Text('حفظ'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -71,11 +71,11 @@ class _AdmissionNotesScreenState extends State<AdmissionNotesScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('حذف الملاحظة'),
-        content: const Text('هل أنت متأكد من حذف هذه الملاحظة؟'),
+        title: const Text('Delete Note'),
+        content: const Text('Are you sure you want to delete this note?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('حذف', style: TextStyle(color: Colors.red))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete', style: TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -91,11 +91,11 @@ class _AdmissionNotesScreenState extends State<AdmissionNotesScreen> {
     final kindLabel = a.type == AdmissionType.procedure ? AdmissionKind.procedure : (a.boardingType ?? '-');
 
     return Scaffold(
-      appBar: AppBar(title: Text('${widget.petName} — الملاحظات')),
+      appBar: AppBar(title: Text('${widget.petName} — Notes')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showNoteDialog(),
         icon: const Icon(Icons.add),
-        label: const Text('إضافة ملاحظة'),
+        label: const Text('Add Note'),
       ),
       body: Column(
         children: [
@@ -106,9 +106,9 @@ class _AdmissionNotesScreenState extends State<AdmissionNotesScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('نوع الحالة: $kindLabel', style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text('تاريخ الدخول: ${a.entryDate}', style: const TextStyle(color: AppColors.textLight)),
-                Text('الخروج المتوقع: ${DateHelper.displayDate(a.expectedExitDate)}', style: const TextStyle(color: AppColors.textLight)),
+                Text('Case Type: $kindLabel', style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text('Entry Date: ${a.entryDate}', style: const TextStyle(color: AppColors.textLight)),
+                Text('Expected Exit: ${DateHelper.displayDate(a.expectedExitDate)}', style: const TextStyle(color: AppColors.textLight)),
               ],
             ),
           ),
@@ -120,7 +120,7 @@ class _AdmissionNotesScreenState extends State<AdmissionNotesScreen> {
                 if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
                 final notes = snapshot.data!;
                 if (notes.isEmpty) {
-                  return const Center(child: Text('لا توجد ملاحظات بعد، اضغط "إضافة ملاحظة"'));
+                  return const Center(child: Text('No notes yet, tap "Add Note"'));
                 }
                 return ListView.builder(
                   padding: const EdgeInsets.all(16),

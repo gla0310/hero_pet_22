@@ -5,7 +5,7 @@ import '../../models/pet.dart';
 import '../../widgets/info_card.dart';
 import 'add_admission_screen.dart';
 
-/// شاشة البحث عن العميل (بالاسم أو رقم الجوال) لتسجيل دخول أليفة للفندقة/الإجراء الطبي
+/// Screen for searching for a client (by name or phone number) to check a pet in for boarding/medical procedure
 class CheckinSearchScreen extends StatefulWidget {
   const CheckinSearchScreen({super.key});
 
@@ -63,7 +63,7 @@ class _CheckinSearchScreenState extends State<CheckinSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('تسجيل دخول — البحث عن العميل')),
+      appBar: AppBar(title: const Text('Check-in — Search for Client')),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -78,7 +78,7 @@ class _CheckinSearchScreenState extends State<CheckinSearchScreen> {
                       autofocus: true,
                       textInputAction: TextInputAction.search,
                       decoration: const InputDecoration(
-                        labelText: 'ابحث برقم الجوال أو اسم العميل',
+                        labelText: 'Search by phone number or client name',
                         prefixIcon: Icon(Icons.search),
                       ),
                       onSubmitted: (_) => _search(),
@@ -98,7 +98,7 @@ class _CheckinSearchScreenState extends State<CheckinSearchScreen> {
               const SizedBox(height: 20),
               if (_searching) const Center(child: CircularProgressIndicator()),
               if (_searched && _searchResults.isEmpty)
-                const Center(child: Text('لا يوجد عملاء مطابقين لبحثك', style: TextStyle(color: Colors.red))),
+                const Center(child: Text('No clients match your search', style: TextStyle(color: Colors.red))),
               Expanded(
                 child: ListView(
                   children: _searchResults
@@ -122,19 +122,19 @@ class _CheckinSearchScreenState extends State<CheckinSearchScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      'العميل: ${_selectedClient!.name} — ${_selectedClient!.phone}',
+                      'Client: ${_selectedClient!.name} — ${_selectedClient!.phone}',
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ),
-                  TextButton(onPressed: _changeClient, child: const Text('تغيير')),
+                  TextButton(onPressed: _changeClient, child: const Text('Change')),
                 ],
               ),
               const SizedBox(height: 12),
-              const Text('اختر الأليفة:'),
+              const Text('Select Pet:'),
               const SizedBox(height: 8),
               Expanded(
                 child: _pets.isEmpty
-                    ? const Text('لا يوجد أليفات مسجلة لهذا العميل')
+                    ? const Text('No pets registered for this client')
                     : ListView(
                         children: _pets
                             .map(

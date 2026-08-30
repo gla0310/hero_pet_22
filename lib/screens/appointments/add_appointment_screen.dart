@@ -8,7 +8,7 @@ import '../../models/appointment.dart';
 import '../../utils/date_helper.dart';
 import '../clinic/add_visit_screen.dart';
 
-/// شاشة إضافة موعد جديد أو تعديل/حذف موعد موجود
+/// Screen for adding a new appointment or editing/deleting an existing one
 class AddAppointmentScreen extends StatefulWidget {
   final Appointment? existingAppointment;
   final String? prefilledPhone;
@@ -150,7 +150,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   Future<void> _save() async {
     if (_selectedPet == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء اختيار الأليفة أولاً')),
+        const SnackBar(content: Text('Please select the pet first')),
       );
       return;
     }
@@ -185,7 +185,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
     if (!mounted) return;
     setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ الموعد')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Appointment saved')));
     Navigator.pop(context, true);
   }
 
@@ -210,11 +210,11 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('حذف الموعد'),
-        content: const Text('هل أنت متأكد من حذف هذا الموعد؟'),
+        title: const Text('Delete Appointment'),
+        content: const Text('Are you sure you want to delete this appointment?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('حذف', style: TextStyle(color: Colors.red))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete', style: TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -223,7 +223,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
     await DBHelper.instance.deleteAppointment(widget.existingAppointment!.id!);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حذف الموعد')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Appointment deleted')));
     Navigator.pop(context, true);
   }
 
@@ -231,7 +231,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? 'تعديل الموعد' : 'إضافة موعد'),
+        title: Text(widget.isEditing ? 'Edit Appointment' : 'Add Appointment'),
         actions: [
           if (widget.isEditing)
             IconButton(icon: const Icon(Icons.delete), onPressed: _delete),
@@ -253,7 +253,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                             autofocus: true,
                             textInputAction: TextInputAction.search,
                             decoration: const InputDecoration(
-                              labelText: 'ابحث برقم الجوال أو اسم العميل',
+                              labelText: 'Search by phone number or client name',
                               prefixIcon: Icon(Icons.search),
                             ),
                             onSubmitted: (_) => _search(),
@@ -275,7 +275,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                     if (_searched && _searchResults.isEmpty)
                       const Padding(
                         padding: EdgeInsets.only(bottom: 12),
-                        child: Text('لا يوجد عملاء مطابقين لبحثك', style: TextStyle(color: Colors.red)),
+                        child: Text('No clients match your search', style: TextStyle(color: Colors.red)),
                       ),
                     Expanded(
                       child: ListView(
@@ -300,20 +300,20 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            'العميل: ${_selectedClient!.name} — ${_selectedClient!.phone}',
+                            'Client: ${_selectedClient!.name} — ${_selectedClient!.phone}',
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                         ),
                         if (!widget.isEditing)
-                          TextButton(onPressed: _changeClient, child: const Text('تغيير')),
+                          TextButton(onPressed: _changeClient, child: const Text('Change')),
                       ],
                     ),
                     const SizedBox(height: 12),
                     Expanded(
                       child: ListView(
                         children: [
-                          const Text('اختر الأليفة', style: TextStyle(fontWeight: FontWeight.bold)),
-                          if (_pets.isEmpty) const Text('لا يوجد أليفات مسجلة لهذا العميل'),
+                          const Text('Select Pet', style: TextStyle(fontWeight: FontWeight.bold)),
+                          if (_pets.isEmpty) const Text('No pets registered for this client'),
                           ..._pets.map(
                             (p) => RadioListTile<Pet>(
                               title: Text(p.name),
@@ -324,7 +324,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                             ),
                           ),
                           const Divider(),
-                          const Text('نوع الموعد', style: TextStyle(fontWeight: FontWeight.bold)),
+                          const Text('Appointment Type', style: TextStyle(fontWeight: FontWeight.bold)),
                           ...AppointmentType.all.map(
                             (t) => RadioListTile<String>(
                               title: Text(t),
@@ -335,7 +335,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                           ),
                           const Divider(),
                           if (widget.isEditing) ...[
-                            const Text('حالة الموعد', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('Appointment Status', style: TextStyle(fontWeight: FontWeight.bold)),
                             Wrap(
                               spacing: 8,
                               runSpacing: 4,
@@ -353,7 +353,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                               width: double.infinity,
                               child: OutlinedButton.icon(
                                 icon: const Icon(Icons.check_circle_outline),
-                                label: const Text('حضر الموعد الآن — فتح زيارة عيادة'),
+                                label: const Text('Attend appointment now — open clinic visit'),
                                 onPressed: _attendNow,
                               ),
                             ),
@@ -362,7 +362,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                           ListTile(
                             contentPadding: EdgeInsets.zero,
                             leading: const Icon(Icons.calendar_today),
-                            title: const Text('التاريخ'),
+                            title: const Text('Date'),
                             subtitle: Text(DateHelper.formatDate(_date)),
                             trailing: const Icon(Icons.edit),
                             onTap: _pickDate,
@@ -370,7 +370,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                           ListTile(
                             contentPadding: EdgeInsets.zero,
                             leading: const Icon(Icons.access_time),
-                            title: const Text('الوقت'),
+                            title: const Text('Time'),
                             subtitle: Text(_time.format(context)),
                             trailing: const Icon(Icons.edit),
                             onTap: _pickTime,
@@ -378,7 +378,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                           const SizedBox(height: 10),
                           TextField(
                             controller: _notesController,
-                            decoration: const InputDecoration(labelText: 'ملاحظات', prefixIcon: Icon(Icons.notes)),
+                            decoration: const InputDecoration(labelText: 'Notes', prefixIcon: Icon(Icons.notes)),
                             maxLines: 3,
                           ),
                           const SizedBox(height: 20),
@@ -394,7 +394,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                                       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                                     )
                                   : const Icon(Icons.save),
-                              label: Text(_saving ? 'جاري الحفظ...' : 'حفظ الموعد'),
+                              label: Text(_saving ? 'Saving...' : 'Save Appointment'),
                               onPressed: _saving ? null : _save,
                             ),
                           ),
