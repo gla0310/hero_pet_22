@@ -31,7 +31,3 @@ workflows:
 
     artifacts:
       - build/ios/iphoneos/unsigned.ipa
-
-    publishing:
-      email:
-        recipients: []
